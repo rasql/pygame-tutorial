@@ -11,6 +11,7 @@ Welcome to Pygame tutorial's documentation!
    :caption: Contents:
 
    tutorial1/tutorial1
+   tutorial2/tutorial2
 
 
 
