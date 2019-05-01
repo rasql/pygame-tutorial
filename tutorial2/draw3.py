@@ -22,6 +22,19 @@ class Ellipse:
     def draw(self):
         pygame.draw.ellipse(Game.screen, self.col, self.rect)
 
+class Text:
+    """Draw a line of text on the screen."""
+    def __init__(self, str, pos=(0, 0), size=24, color=BLACK):
+        self.str = str
+        self.pos = pos
+        self.size = size
+        self.color = color
+        self.font = pygame.font.Font(None, self.size)
+
+    def draw(self):
+        """Draw the text on the screen."""
+        self.text = self.font.render(self.str, True, self.color)
+        Game.screen.blit(self.text, self.pos)
 
 class Game():
     """Define the main game object and its attributes."""
@@ -29,9 +42,8 @@ class Game():
         pygame.init()
         Game.screen = pygame.display.set_mode((640, 240))
         self.bg = YELLOW
-        self.str = 'mouseclick to place rect, backspace to remove'
-        self.font = pygame.font.Font(None, 24)
         self.objects = []
+        self.objects.append(Text('mouse-click to place rect, back-space to remove rect'))
         self.key = None
 
     def run(self):
@@ -67,8 +79,6 @@ class Game():
 
     def draw(self):
         self.screen.fill(self.bg)
-        self.text = self.font.render(self.str, True, BLACK)
-        self.screen.blit(self.text, (10, 10))
 
         for object in self.objects:
             object.draw()

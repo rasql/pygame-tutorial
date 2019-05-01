@@ -1,4 +1,5 @@
 """This is the pygame library with utility functions and definitions."""
+import pygame
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)

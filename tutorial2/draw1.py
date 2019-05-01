@@ -1,4 +1,4 @@
-"""Draw a rectangle."""
+"""Draw text, rectangles and a circle."""
 
 import pygame
 from pygamelib import *
