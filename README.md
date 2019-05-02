@@ -1,4 +1,4 @@
-# Pygame tutorial
+[![Documentation Status](https://readthedocs.org/projects/pygame/badge/?version=latest)](https://pygame.readthedocs.io/en/latest/?badge=latest)
 
 Welcome to the Pygame tutorial
 ------------------------------
