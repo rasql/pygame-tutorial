@@ -12,7 +12,7 @@ Welcome to Pygame tutorial's documentation!
 
    tutorial1/tutorial1
    tutorial2/tutorial2
-
+   tutorial3/tutorial3
 
 
 Indices and tables

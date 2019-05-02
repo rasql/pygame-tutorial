@@ -1,3 +1,7 @@
+"""Draw a blue rectangle.
+Use the arrow keys to move the rectangle. 
+Use the alt+arrow keys to resize the rectangle."""
+
 import pygame
 from pygame.locals import *
 from pygamelib import *

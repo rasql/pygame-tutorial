@@ -85,3 +85,87 @@ Draw lines
    :members:
 
 .. image:: draw4.png
+
+
+The Game class
+--------------
+
+The basic structure of a game is always the same.
+We create a ``Game`` class from which we can sub-class our applications.
+
+The constructor method
+
+* initilizes the module
+* creates a display window, stored as class variable ``Game.screen``
+* defines a background color
+* defines an empty ``objects`` list::
+
+    class Game():
+        """Define the main game object and its attributes."""
+        def __init__(self):
+            pygame.init()
+            Game.screen = pygame.display.set_mode((640, 240))
+            self.bg_color = WHITE
+            self.objects = []
+
+The ``run()`` method enters the game loop. Only the QUIT event
+is handled. All other events are sent to the ``on_event`` function::
+
+    def run(self):
+        """Run the main event loop.
+        Handle the QUIT event and call ``on_event``. """
+        running = True
+        while running:
+            for event in pygame.event.get():
+
+                if event.type == QUIT:
+                    running = False
+                else:
+                    self.on_event(event)
+            self.draw()
+
+If a game has events and interacts with the user then the ``on_event```
+method must be implemented::
+
+    def on_event(self, event):
+        """Implement an event handler."""
+        pass
+
+The ``draw()`` method 
+
+* draws the background
+* draws all the objects in the ``objects`` list
+* updates (flips) the display::
+
+    def draw(self):
+        """Draw the game objects to the screen."""
+        self.screen.fill(self.bg_color)
+        for object in self.objects:
+            object.draw()
+        pygame.display.flip()
+
+.. automodule:: draw5
+
+.. autoclass:: LineDemo
+   :members:
+
+.. image:: draw5.png
+
+
+Text demo
+---------
+
+The basic structure of a game is always the same.
+We create a ``Game`` class from which we can sub-class.
+
+ .. automodule:: draw6
+
+ .. autoclass:: Text
+    :members:
+
+.. autoclass:: ListLabel
+
+.. autoclass:: TextDemo
+   :members:
+
+.. image:: draw6.png

@@ -1,4 +1,5 @@
-"""Place a rectangle by clicking and dragging with the mouse."""
+"""Place a rectangle or ellipse by clicking and dragging with the mouse.
+Press E to draw an ellipse and R to draw a rectangle."""
 
 import pygame
 from pygame.locals import *

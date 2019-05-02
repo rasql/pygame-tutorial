@@ -7,6 +7,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
+
 colors = {
     'black':BLACK, 
     'red':RED, 
@@ -17,6 +18,7 @@ colors = {
     'magenta':MAGENTA,
     'white':WHITE,
 }
+
 
 class Text:
     """Draw a line of text on the screen."""
