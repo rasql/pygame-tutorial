@@ -169,3 +169,111 @@ We create a ``Game`` class from which we can sub-class.
    :members:
 
 .. image:: draw6.png
+
+Drawing shapes
+--------------
+
+The **pygame.draw** module has methods for drawing shapes to the screen:
+
+* pygame.draw.rect
+* pygame.draw.polygon
+* pygame.draw.circle
+
+The methods only draw the shape once. Using an object-oriented approach we are going 
+to define classes for each shape. There is a common class which we call ``Shape`` 
+
+The class defintion begins with a couple of **class attributes**::
+
+    class Shape:
+        """Base class for geometric shapes having size, color and thickness."""
+        size = [50, 20]  # default size
+        color = BLUE     # default color
+        d = 0            # default thickness
+        v = [0, 0]       # default speed
+
+The constructor methods finds the attribute values for the shape either from the 
+class attribute, or from the argument passed::
+
+        if pos != None:
+            Game.pos = list(pos)
+        self.pos = Game.pos[:]
+
+        if size != None:
+            Shape.size = list(size)
+        self.size = Shape.size[:]
+        Game.pos[1] += Shape.size[1] 
+        
+        if color != None:
+            Shape.color = color
+        self.color = Shape.color
+
+        if d != None:
+            Shape.d = d
+        self.d = Shape.d
+
+        if v != None:
+            Shape.v = list(v)
+        self.v = Shape.v
+
+At the end we define the enclosing rectangle which is used by some of the drawing methods.
+Finally the object is appended to the objects list::
+
+        self.rect = Rect(self.pos, self.size)
+        Game.objects.append(self)
+
+The ``draw()`` method needs to be instantiated separately for each object type::
+
+    def draw():
+        pass
+
+Rectangles ane Ellipses
+-----------------------
+
+This are two derived classes:
+
+.. currentmodule:: pygamelib
+
+.. autoclass:: Rectangle
+    :members:
+
+.. autoclass:: Ellipse
+    :members:
+ 
+.. autoclass:: Rectangle
+    :members:
+ 
+.. image:: draw7.png
+
+
+Polygons, Arcs and Lines
+------------------------
+
+This are some more derived classes:
+
+.. autoclass:: Polygon
+    :members:
+
+.. autoclass:: Arc
+    :members:
+ 
+.. autoclass:: Line
+    :members:
+ 
+.. image:: draw8.png
+
+
+Randomly moving shapes
+----------------------
+
+In order to move the shapes, we add an ``update()`` method to ``Shape``::
+
+    def update(self):
+        self.pos[0] += self.v[0]
+        self.pos[1] += self.v[1]
+        if not 0 < self.pos[0] < Game.screen.get_width()-self.size[0]:
+            self.v[0] *= -1
+        if not 0 < self.pos[1] < Game.screen.get_height()-self.size[1]:
+            self.v[1] *= -1
+        self.rect.topleft = self.pos
+
+.. image:: draw9.png
