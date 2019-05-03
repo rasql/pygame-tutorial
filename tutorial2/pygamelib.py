@@ -1,7 +1,9 @@
-"""This is the pygame library with utility functions and definitions."""
+"""This pygame library provides useful classes for making games quickly."""
+
+import os, sys
 import pygame
 from pygame.locals import *
- 
+
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -12,6 +14,7 @@ MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
 WHITE = (255, 255, 255)
 GRAY = (128, 128, 128)
+LIGHTGRAY = (240, 240, 240)
 
 
 colors = {
@@ -31,6 +34,8 @@ class Shape:
     color = BLUE     # default color
     d = 0            # default thickness
     v = [0, 0]       # default speed
+    selection_color = RED
+    selection_d = 3
 
     def __init__(self, pos=None, size=None, color=None, d=None, v=None):
         """Define the object attributes from the arguments and class defaults."""
@@ -56,17 +61,24 @@ class Shape:
         self.v = Shape.v
 
         self.rect = Rect(self.pos, self.size)
+        self.selected = False
+        self.cmd = ''
         Game.objects.append(self)
 
-    def draw():
+    def draw(self):
         pass
+
+    def select(self):
+        color = Shape.selection_color
+        d = Shape.selection_d
+        pygame.draw.rect(Game.screen, color, self.rect, d)
 
     def update(self):
         self.pos[0] += self.v[0]
         self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < Game.screen.get_width()-self.size[0]:
+        if not 0 < self.pos[0] < Game.w-self.size[0]:
             self.v[0] *= -1
-        if not 0 < self.pos[1] < Game.screen.get_height()-self.size[1]:
+        if not 0 < self.pos[1] < Game.h-self.size[1]:
             self.v[1] *= -1
         self.rect.topleft = self.pos
 
@@ -77,7 +89,8 @@ class Rectangle(Shape):
 
     def draw(self):
         pygame.draw.rect(Game.screen, self.color, self.rect, self.d)
-
+        if self.selected:
+            self.select()
 
 class Ellipse(Shape):
     """Draw an ellipse on the screen."""  
@@ -119,15 +132,15 @@ class Line(Shape):
         pygame.draw.line(Game.screen, self.color, self.start, self.stop, self.d)
 
 
-
 class Text:
     """Draw a line of text on the screen."""
     
     color = BLACK
     size = 24
     font = None
+    v = [0, 0]
 
-    def __init__(self, str, pos=None, size=None, color=None, font=None):
+    def __init__(self, str, pos=None, size=None, color=None, font=None, v=None):
 
         if size != None:
             Text.size = size
@@ -142,6 +155,10 @@ class Text:
             Text.color = color
         self.color = Text.color
         
+        if v != None:
+            Text.v = list(v)
+        self.v = Text.v
+
         self.font = font
         self.set(str)
         Game.objects.append(self)
@@ -154,9 +171,16 @@ class Text:
             self.color = color
         self.font = pygame.font.Font(None, self.size)
         self.text = self.font.render(self.str, True, self.color)
+        self.rect = self.text.get_rect()
 
     def update(self):
-        pass
+        self.pos[0] += self.v[0]
+        self.pos[1] += self.v[1]
+        if not 0 < self.pos[0] < Game.w-self.rect.w:
+            self.v[0] *= -1
+        if not 0 < self.pos[1] < Game.h-self.rect.h:
+            self.v[1] *= -1
+        self.rect.topleft = self.pos
 
     def draw(self):
         """Draw the text on the screen."""
@@ -189,31 +213,87 @@ class ListLabel(Text):
         return self.value
 
 
+class Button(Shape):
+    """Draw Button on the screen.""" 
+    size = [120, 40]
+    color = WHITE
+    d = 3
+     
+    def __init__(self, msg, cmd, size=None, color=None, d=None, **kwargs):
+        super(Button, self).__init__(**kwargs)
+        self.msg = msg
+        self.cmd = cmd
+
+        if color != None:
+            Button.color = color
+        self.color = Button.color
+
+        if size != None:
+            Button.size = list(size)
+        self.size = Button.size
+        self.rect.size = self.size
+        Game.pos[1] += Button.size[1]
+
+        if d != None:
+            Button.d = d
+        self.d = Button.d
+        
+        self.font = pygame.font.Font(None, self.size[1])
+        self.text = self.font.render(self.msg, True, BLACK)
+        self.text_rect = self.text.get_rect()
+        self.text_rect.center = self.rect.center
+
+    def draw(self):
+        pygame.draw.rect(Game.screen, self.color, self.rect, 0)
+        pygame.draw.rect(Game.screen, BLACK, self.rect, self.d)
+        Game.screen.blit(self.text, self.text_rect)
+
+    def update(self):
+        pass
+
 class Game():
     """Define the main game object and its attributes."""
     
-    pos = [0, 0]
-    objects = []
+    pos = [10, 10]   # current position for object placement
+    objects = []   # objects to display
+    selection = [] # current selection
 
     def __init__(self):
         """Initialize pygame and set up the display screen."""
         pygame.init()
         Game.screen = pygame.display.set_mode((640, 240))
-        self.bg_color = WHITE
+        Game.w = Game.screen.get_width()
+        Game.h = Game.screen.get_height()
+        self.bg_color = LIGHTGRAY
+        self.key = None
+        self.mod = None
+        self.cmd = {}
+        self.running = True
     
     def run(self):
         """Run the main event loop.
         Handle the QUIT event and call ``on_event``. """
-        running = True
-        while running:
+        while self.running:
             for event in pygame.event.get():
-
                 if event.type == QUIT:
-                    running = False
-                else:
-                    self.on_event(event)
+                    self.running = False
+                elif event.type == KEYDOWN:
+                    self.key = event.key
+                    self.mod = event.mod
+                    if event.key == K_ESCAPE:
+                        running = False
+                    if event.key in self.cmd:
+                        eval(self.cmd[event.key])
+                elif event.type == MOUSEBUTTONDOWN:
+                    for obj in Game.objects:
+                        if obj.rect.collidepoint(event.pos):
+                            exec(obj.cmd)
+
+                self.on_event(event)
             self.update()
             self.draw()
+
+        pygame.quit()
         
     def on_event(self, event):
         """Implement an event handler."""
@@ -230,6 +310,15 @@ class Game():
         for object in Game.objects:
             object.draw()
         pygame.display.flip()
+    
+    def capture(self):
+        """Save a screen capture to the current directory."""
+        print('capture', __file__, __class__)
+        pygame.image.save(Game.screen, "image.png")
+
+    def find_objects(self, pos):
+        """Return the objects at position."""
+        return [obj for obj in Game.objects if obj.rect.collidepoint(pos)]
 
 if __name__ == '__main__':
     Game().run()

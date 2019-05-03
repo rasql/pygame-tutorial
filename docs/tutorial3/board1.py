@@ -49,6 +49,9 @@ class Board:
         x = self.x0 + self.j * self.dx
         y = self.y0 + self.i * self.dy
         return x, y
+    
+    def update(self):
+        pass
 
 
 class BoardDemo(Game):

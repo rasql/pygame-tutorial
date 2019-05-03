@@ -3,7 +3,6 @@
 * Text has the attributes pos, size, color, font."""
 
 import pygame
-import numpy as np
 from pygame.locals import *
 from pygamelib import *
 
@@ -21,9 +20,6 @@ class TextDemo(Game):
         ListLabel('menu:', ['a', 'b', 'c'])
         Rectangle(color=RED)
         Ellipse(color=BLUE)
-        Ellipse(d=1)
-        Ellipse(size=(200, 100))
         
-
 if __name__ == '__main__':
     TextDemo().run()
