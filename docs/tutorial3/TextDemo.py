@@ -1,11 +1,22 @@
-"""Draw Text with inherited attributes.
-* Text is automatically added to objects.
-* Text has the attributes pos, size, color, font."""
+"""
+Draw Text with attributes
+-------------------------
+
+Text is placed on the screen as a **Text()** object.
+They are automatically positioned vertically. 
+Text can have the attributes:
+
+* color
+* size
+* position
+* font
+
+The next text object inherits the previous attributes.
+"""
 
 import pygame
 from pygame.locals import *
 from pygamelib import *
-
 
 class TextDemo(Game):
     """Draw text in different sizes and colors."""

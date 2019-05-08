@@ -64,7 +64,7 @@ class BoardDemo(Game):
         print(self.board.T)
         self.objects.append(self.board)
 
-    def on_event(self, event):
+    def on_event(self, event): 
         """React to mouseclicks and keydown events."""
         d = {K_LEFT:(-1, 0), K_RIGHT:(1, 0), K_UP:(0, -1), K_DOWN:(0, 1), }
         if event.type == KEYDOWN:

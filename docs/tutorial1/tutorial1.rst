@@ -1,7 +1,9 @@
 Introduction to Pygame
 ======================
 
-Pygame is a multimedia library which as basically a wrapper around the SDL (Simple DirectMedia Layer) library.
+Pygame is a multimedia library which a wrapper around the SDL (Simple DirectMedia Layer) library.
+
+After an introduction of the basics without classes, each example is a subclass of the ``Game`` class. 
 
 
 Initialization
@@ -67,8 +69,8 @@ In order to quit the game with the window close button (QUIT event) we modify th
 Object oriented Programming
 ---------------------------
 
-From now on we will use object-oriented programming (OOP) style. We define a ``Game`` class which is main game object.
-It has a ``run()`` method which launches the event loop.
+From now on we will use **object-oriented programming (OOP)** style. We define a :class:`Game` class which is main game object.
+It has a :meth:`run()` method which launches the event loop.
 
 .. automodule:: tutorial3
 

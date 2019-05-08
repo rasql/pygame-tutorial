@@ -1,4 +1,11 @@
-"""Floating text."""
+"""
+Floating text
+-------------
+
+In this exemple words from a list float over the screen, 
+with random speed vx and vy in the range (-3, ... +3), 
+and starting at random positions.
+"""
 
 import pygame
 from random import randint
@@ -6,18 +13,16 @@ from pygame.locals import *
 from pygamelib import *
 
 words = ['beauty', 'strength', 'love', 'dream', 'silence']
-cmd = {
-    K_a:'self.new_text()', 
-    K_BACKSPACE:'Game.objects.pop()',
-    K_p:'Game.capture(self)',}
 
-class TextDemo(Game):
+class TextDemo2(Game):
     """Draw text in different sizes and colors."""
     def __init__(self):
-        super(TextDemo, self).__init__()
+        super(TextDemo2, self).__init__()
+        self.shortcuts[K_a] = 'self.new_text()'
+        self.shortcuts[K_BACKSPACE] = 'Game.objects.pop()'
+        
         Text('Floating text', size=50)
         Text('Press A to add, BACK to remove', size=24)
-
         for i in range(10):
             self.new_text()
 
@@ -31,14 +36,5 @@ class TextDemo(Game):
         y = randint(0, Game.h)
         Text(word, pos=(x, y), size=size, v=(vx, vy))
 
-    def on_event(self, event):
-        if event.type == KEYDOWN:
-            if event.key in cmd:
-                eval(cmd[event.key])
-            # if event.key == K_a:
-            #     self.new_text()
-            # if event.key == K_BACKSPACE:
-            #     Game.objects.pop()
-
 if __name__ == '__main__':
-    TextDemo().run()
+    TextDemo2().run()

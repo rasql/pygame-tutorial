@@ -1,43 +1,33 @@
-"""Editing graphical shapes.
-* placing rectangles"""
+"""Define shortcut keys with modifiers."""
 
 import pygame
-from random import randint
 from pygame.locals import *
-from pygamelib import *
+from pygamelib import * 
 
-words = ['beauty', 'strength', 'love', 'dream', 'silence']
-cmd = {
-    K_BACKSPACE:'Game.objects.pop()',
-    K_p:'Game.capture(self)',
-    K_t:'print("test")',}
+d = {
+    K_a:'print("A")',
+    (K_a, KMOD_LSHIFT):'print("shift+A")',
+    (K_a, KMOD_LCTRL):'print("ctrl+A")',
+    (K_a, KMOD_LALT):'print("alt+A")',
+    (K_a, KMOD_LMETA):'print("cmd+A")', 
+    K_UP:'print("UP")',
+    K_LEFT:'print("LEFT")',
+}
 
-class GuiDemo(Game):
-    """Draw text in different sizes and colors."""
+class ShortcutDemo(Game):
     def __init__(self):
-        super(GuiDemo, self).__init__()
-        Text('Placing rectangles', size=50)
-        Text('Press A to add, BACK to remove', size=24)
-        self.editing = False
-        self.cmd = cmd
-
+        super(ShortcutDemo, self).__init__()
+        Text('Shortcuts', size=100)
+        Text('Press A, with shift, ctrl, alt and cmd', size=50)
 
     def on_event(self, event):
-        if event.type == MOUSEBUTTONDOWN:
-            if self.key == K_a:
-                Rectangle(pos=event.pos, size=(0, 0))
-                self.editing = True
-            else:
-                sel = self.find_objects(event.pos)
-                for obj in sel:
-                    obj.selected = True
-
-        elif event.type == MOUSEMOTION:
-            if self.editing:
-                Game.objects[-1].rect.inflate_ip(event.rel)
-
-        elif event.type == MOUSEBUTTONUP:
-            self.editing = False
+        if event.type == KEYDOWN:
+            k = event.key
+            m = event.mod
+            if k in d and m == 0 :
+                exec(d[k])
+            elif (k, m) in d:
+                exec(d[k, m])
 
 if __name__ == '__main__':
-    GuiDemo().run()
+    ShortcutDemo().run()
