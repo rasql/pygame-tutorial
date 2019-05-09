@@ -12,7 +12,6 @@ from pygamelib import *
 words = ['beauty', 'strength', 'love', 'dream', 'silence']
 cmd = {
     K_BACKSPACE:'Game.objects.pop()',
-    K_p:'Game.capture(self)',
     K_t:'print("test")',}
 
 class ButtonDemo(Game):
@@ -25,7 +24,7 @@ class ButtonDemo(Game):
         
         Button('Start 1', 'print("start 1")')
         Button('Start 2', 'print("start 2")')
-        Button('Stop', 'self.running=False', pos=(200, 100), color=YELLOW)
+        Button('Stop', 'Game.running=False', pos=(200, 100), color=YELLOW)
         Button('Quit', 'sys.exit()')
 
 if __name__ == '__main__':

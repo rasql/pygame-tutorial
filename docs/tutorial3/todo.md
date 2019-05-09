@@ -24,3 +24,19 @@ However the image captured stays the same.
 Combine left and right cmd/alt/shift keys
 -----------------------------------------
 
+To do
+-----
+
+* add serial number to captured images
+* add click-sound to image capture
+* add options menu (full screen, capture, sound, colors, wrap)
+* use tab key to move between active objects
+* subclass Board from Shape
+* cmd+arrow to add speed to selected object
+
+Done
+----
+
+* add background color for text
+* mark active object with blue frame
+* use arrow keys to move between active cell (**board**)

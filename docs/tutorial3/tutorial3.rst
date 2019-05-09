@@ -8,7 +8,7 @@ Work with text
 
 .. automodule:: TextDemo2
    :members:
-   
+
 .. image:: TextDemo2.png
 
 GUI
@@ -76,6 +76,18 @@ Selecting objects
 .. image:: gui4.png
 
 
+Selecting objects
+^^^^^^^^^^^^^^^^^
+
+.. automodule:: gui5
+
+.. autoclass:: GuiDemo5
+   :members:
+
+.. image:: GuiDemo5.png
+
+
+
 Board game
 ----------
 
@@ -85,6 +97,16 @@ Board game
     :members:
 
 .. image:: board1.png
+
+Selecting cells with the mouse
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: board2
+
+.. autoclass:: BoardDemo2
+    :members:
+
+.. image:: BoardDemo2.png
 
 
 To do

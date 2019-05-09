@@ -3,9 +3,8 @@
 import os, sys, inspect
 import pygame
 from pygame.locals import *
+import numpy as np
 
-SHIFT = KMOD_LSHIFT + KMOD_RSHIFT
-CTRL = KMOD_LCTRL + KMOD_RCTRL
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -30,28 +29,37 @@ colors = {
     'white':WHITE,
 }
 
+
 class Shape:
-    """Base class for geometric shapes. They have 
-    * size, color and thickness.
-    * position, speed, friction and gravity."""
-    
-    size = [50, 20]  # default size
-    color = BLUE     # default color
+    """Base class for geometric shapes objects to place in the game.
+    Shapes have the following attributes: 
+
+    * size
+    * color
+    * thickness
+    * position, speed, 
+    * friction, gravity
+    """
+    pos = [10, 10]   # default position
+    size = [100, 40] # default size
+    gap = 2          # defalut gap
+    color = GREEN    # default color
     d = 0            # default thickness
     v = [0, 0]       # default speed
-    selection_color = RED
-    selection_d = 3
+    selection_color = BLUE
+    selection_d = 2
 
     def __init__(self, pos=None, size=None, color=None, d=None, v=None):
         """Define the object attributes from the arguments and class defaults."""
+        
         if pos != None:
-            Game.pos = list(pos)
-        self.pos = Game.pos[:]
+            Shape.pos = list(pos)
+        self.pos = Shape.pos[:]
 
         if size != None:
             Shape.size = list(size)
         self.size = Shape.size[:]
-        Game.pos[1] += Shape.size[1] 
+        Shape.pos[1] += Shape.size[1] + Shape.gap
         
         if color != None:
             Shape.color = color
@@ -63,27 +71,47 @@ class Shape:
 
         if v != None:
             Shape.v = list(v)
-        self.v = Shape.v
+        self.v = Shape.v[:]
 
         self.rect = Rect(self.pos, self.size)
-        self.selected = False
+        self.is_active = False
         self.cmd = ''
         Game.objects.append(self)
 
     def draw(self):
+        """Draw the object to the screen."""
+        if self.is_active:
+            self.select()
+
+    def on_click(self, event):
+        """Handle a mouse click."""
         pass
 
+    def on_key(self, event):
+        """Handle a key press event."""
+        if self.is_active:
+            if pygame.key.get_mods() & KMOD_META:
+                d = {K_UP:(0, -1), K_DOWN:(0, 1), K_LEFT:(-1, 1), K_RIGHT:(1, 0)}
+                if event.key in d:
+                    dv = d[event.key]
+                    self.v[0] += dv[0]
+                    self.v[1] += dv[1]
+                if event.key == K_s:
+                    self.v = [0, 0]
+
     def select(self):
+        """Surround the object with a frame."""
         color = Shape.selection_color
         d = Shape.selection_d
         pygame.draw.rect(Game.screen, color, self.rect, d)
 
     def update(self):
+        """Update the position of the object."""
         self.pos[0] += self.v[0]
         self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < Game.w-self.size[0]:
+        if not 0 < self.pos[0] < Game.w-self.rect.w:
             self.v[0] *= -1
-        if not 0 < self.pos[1] < Game.h-self.size[1]:
+        if not 0 < self.pos[1] < Game.h-self.rect.h:
             self.v[1] *= -1
         self.rect.topleft = self.pos
 
@@ -94,8 +122,8 @@ class Rectangle(Shape):
 
     def draw(self):
         pygame.draw.rect(Game.screen, self.color, self.rect, self.d)
-        if self.selected:
-            self.select()
+        Shape.draw(self)
+ 
 
 class Ellipse(Shape):
     """Draw an ellipse on the screen."""  
@@ -104,16 +132,18 @@ class Ellipse(Shape):
 
     def draw(self):
         pygame.draw.ellipse(Game.screen, self.color, self.rect, self.d)
+        Shape.draw(self)
 
 
 class Polygon(Shape):
     """Draw a polygon on the screen."""  
-    def __init__(self, points, **kwargs):
+    def __init__(self, points=[], **kwargs):
         super(Polygon, self).__init__(**kwargs)
         self.points = points
 
     def draw(self):
         pygame.draw.polygon(Game.screen, self.color, self.points, self.d)
+        Shape.draw(self)
 
 
 class Arc(Shape):
@@ -125,6 +155,8 @@ class Arc(Shape):
 
     def draw(self):
         pygame.draw.arc(Game.screen, self.color, self.rect, self.start, self.stop, self.d)
+        Shape.draw(self)
+
 
 class Line(Shape):
     """Draw a line on the screen."""  
@@ -135,61 +167,58 @@ class Line(Shape):
 
     def draw(self):
         pygame.draw.line(Game.screen, self.color, self.start, self.stop, self.d)
+        Shape.draw(self)
 
 
-class Text:
+class Text(Shape):
     """Draw a line of text on the screen."""
-    
-    color = BLACK
-    size = 24
-    font = None
-    v = [0, 0]
+    fontcolor = BLACK
+    fontsize = 24
+    fontname = None
+    bgcolor = None
 
-    def __init__(self, str, pos=None, size=None, color=None, font=None, v=None):
-
+    def __init__(self, str='', size=None, color=None, bgcolor=None, font=None, **kwargs):
         if size != None:
-            Text.size = size
-        self.size = Text.size
+            Text.fontsize = size
+        self.fontsize = Text.fontsize
 
-        if pos != None:
-            Game.pos = list(pos)
-        self.pos = Game.pos[:]
-        Game.pos[1] += Text.size * 3 // 4
+        if font != None:
+            Text.fontname = font
+        self.fontname = Text.fontname
 
         if color != None:
-            Text.color = color
-        self.color = Text.color
+            Text.fontcolor = color
+        self.fontcolor = Text.fontcolor
+
+        if bgcolor != None:
+            Text.bgcolor = bgcolor
+        self.bgcolor = Text.bgcolor
         
-        if v != None:
-            Text.v = list(v)
-        self.v = Text.v
-
-        self.font = font
-        self.set(str)
-        Game.objects.append(self)
-
-    def set(self, str, size=None, color=None):
         self.str = str
-        if size != None:
-            self.size = size
-        if color != None:
-            self.color = color
-        self.font = pygame.font.Font(None, self.size)
-        self.text = self.font.render(self.str, True, self.color)
-        self.rect = self.text.get_rect()
+        self.render()     
 
-    def update(self):
-        self.pos[0] += self.v[0]
-        self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < Game.w-self.rect.w:
-            self.v[0] *= -1
-        if not 0 < self.pos[1] < Game.h-self.rect.h:
-            self.v[1] *= -1
-        self.rect.topleft = self.pos
+        super(Text, self).__init__(size=self.rect.size, **kwargs)
+
+    def render(self):
+        """Render the string and create an Surface object."""
+        self.font = pygame.font.Font(self.fontname, self.fontsize)
+        self.text = self.font.render(self.str, True, self.fontcolor, self.bgcolor)
+        self.rect = self.text.get_rect()
 
     def draw(self):
         """Draw the text on the screen."""
         Game.screen.blit(self.text, self.pos)
+        Shape.draw(self)
+
+    def on_key(self, event):
+        """Edit the text. Backspace to delete."""
+        Shape.on_key(self, event)
+        if not pygame.key.get_mods() & (KMOD_CTRL | KMOD_META):
+            if event.key == K_BACKSPACE:
+                self.str = self.str[:-1]
+            else:
+                self.str = self.str + event.unicode
+            self.render()
 
 
 class ListLabel(Text):
@@ -215,6 +244,7 @@ class ListLabel(Text):
         self.value = self.values[self.index]
         self.key = self.keys[self.index]
         self.str = self.label + self.key
+        self.render()
         return self.value
 
 
@@ -253,13 +283,97 @@ class Button(Shape):
         pygame.draw.rect(Game.screen, BLACK, self.rect, self.d)
         Game.screen.blit(self.text, self.text_rect)
 
-    def update(self):
-        pass
+    def on_click(self, event):
+        eval(self.cmd)
+
+
+class Board(Shape):
+    """Represents a nxm board with n rows and m columns.
+    n, m    number of cells (row, column)
+    i, j    index of cell (row, column)
+    dx, dy  size of cell
+    x0, y0  origin of first cell
+    """
+    
+    def __init__(self, n=8, m=8, dx=20, dy=20, pos=None, **kwargs):
+        self.size = (m * dx, n * dy)
+        super(Board, self).__init__(pos=pos, size=self.size, **kwargs)
+        self.n = n
+        self.m = m
+        self.i = 0
+        self.j = 0
+        self.col = RED
+        self.dx = dx
+        self.dy = dy
+        self.x0, self.y0 = self.pos
+        self.sel = set()    # set of selected cells
+        self.rect = Rect(self.pos, self.size)
+        self.is_active = False
+        self.wrap = False
+        self.T = np.zeros((n, m), int)
+        
+    def draw(self):
+        x0, y0 = self.pos
+        x1, y1 = self.get_pos((self.n, self.m))
+        for i in range(self.n+1):
+            y = y0 + i * self.dy
+            pygame.draw.line(Game.screen, BLACK, (x0, y), (x1, y))
+        for j in range(self.m+1):
+            x = x0 + j * self.dx
+            pygame.draw.line(Game.screen, BLACK, (x, y0), (x, y1))
+
+        for i in range(self.n):
+            font = pygame.font.Font(None, 24)
+            for j in range(self.m):
+                x, y = self.get_pos((i, j))
+                text = font.render(str(self.T[i, j]), True, BLACK)
+                rect = text.get_rect()
+                rect.center = x + self.dx//2, y + self.dy//2
+                Game.screen.blit(text, rect)
+        
+        for s in self.sel:
+            rect = pygame.Rect(self.get_pos(s), (self.dx, self.dy))
+            pygame.draw.rect(Game.screen, RED, rect, 3)
+        Shape.draw(self)
+    
+    def get_index(self, pos):
+        j = (pos[0] - self.pos[0]) // self.dx
+        i = (pos[1] - self.pos[1]) // self.dy
+        return i, j
+
+    def get_pos(self, index):
+        x = self.pos[0] + index[1] * self.dx
+        y = self.pos[1] + index[0] * self.dy
+        return x, y
+
+    def on_click(self, event):
+        """Add clicked cell to selection."""
+        if pygame.key.get_mods() & KMOD_META:
+            self.sel.add(self.get_index(event.pos))
+        else:
+            self.sel = set([self.get_index(event.pos)])
+
+    def on_key(self, event):
+        """Move the current cell if there is only one."""
+        if len(self.sel) == 1:
+             d = {K_LEFT:(0, -1), K_RIGHT:(0, 1), K_UP:(-1, 0), K_DOWN:(1, 0), }
+             if event.key in d:
+                i, j = list(self.sel)[0]
+                di, dj = d[event.key]
+                i += di
+                j += dj
+                if self.wrap:
+                    i %= self.n
+                    j %= self.m
+                else:
+                    i = 0 if i < 0 else self.n-1 if i >= self.n else i
+                    j = 0 if j < 0 else self.m-1 if j >= self.m else j
+                self.sel = {(i, j)}
+
 
 class Game():
     """Define the main game object and its attributes."""
-    
-    pos = [10, 10]   # current position for object placement
+
     objects = []   # objects to display
     selection = [] # current selection
 
@@ -273,27 +387,41 @@ class Game():
         self.bg_color = LIGHTGRAY
         self.key = None
         self.mod = None
-        self.shortcuts = {  K_ESCAPE:'self.running=False', 
+        self.current_obj = None
+        self.shortcuts = {  K_ESCAPE:'Game.running=False', 
                             K_p:'self.capture()',
-                            K_w:'self.who_where()',
         }
-        self.running = True
+        Game.running = True
     
     def run(self):
         """Run the main event loop.
         Handle the QUIT event and call ``on_event``. """
-        while self.running:
+        while Game.running:
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    self.running = False
+                    Game.running = False
+
                 elif event.type == KEYDOWN:
                     self.do_shortcuts(event)
                     self.key = event.key
                     self.mod = event.mod
+                    if self.current_obj:
+                        self.current_obj.on_key(event)
+
                 elif event.type == MOUSEBUTTONDOWN:
                     for obj in Game.objects:
                         if obj.rect.collidepoint(event.pos):
-                            exec(obj.cmd)
+                            if self.current_obj:
+                                self.current_obj.is_active = False
+                            self.current_obj = obj
+                            obj.is_active = True
+                            obj.on_click(event)
+
+                elif event.type == MOUSEMOTION:
+                    if self.current_obj:
+                        if pygame.key.get_mods() & KMOD_META:
+                            self.current_obj.pos = list(event.pos)
+
                 elif event.type == VIDEORESIZE:
                     print(event)
                 self.on_event(event)
@@ -303,11 +431,11 @@ class Game():
         pygame.quit()
         
     def on_event(self, event):
-        """Implement an event handler."""
+        """Implement a general-purpose event handler."""
         pass
 
     def update(self):
-        """Update the screen objects (sprites)."""
+        """Update the screen objects."""
         for object in Game.objects:
             object.update()
 
@@ -334,33 +462,14 @@ class Game():
     def do_shortcuts(self, event):
         """Check if the key/mod combination is part of the shortcuts
         dictionary and execute it. More shortcuts can be added 
-        by the program to the ``self.shortcuts`` dictionary."""
+        to the ``self.shortcuts`` dictionary by the program."""
         k = event.key
         m = event.mod
-
-        if m & KMOD_ALT:
-            m |= KMOD_ALT
-        if m & KMOD_CTRL:
-            m |= KMOD_CTRL
-        if m & KMOD_SHIFT: 
-            m |= KMOD_SHIFT
 
         if k in self.shortcuts and m == 0 :
             exec(self.shortcuts[k])
         elif (k, m) in self.shortcuts:
             exec(self.shortcuts[k, m])
-
-    def who_where(self):
-        """Print info to the current caller."""
-        print('\nwho_where')
-        print('__name__  =', __name__)
-        print('__class__ =', __class__)
-        print('self', self)
-        print(type(self).__name__)
-        module = sys.modules['__main__']
-        print(module.__name__)
-        print(module.__file__)
-        print(os.path.dirname(module.__file__))
         
 if __name__ == '__main__':
     Game().run()

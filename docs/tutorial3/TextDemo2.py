@@ -19,10 +19,10 @@ class TextDemo2(Game):
     def __init__(self):
         super(TextDemo2, self).__init__()
         self.shortcuts[K_a] = 'self.new_text()'
-        self.shortcuts[K_BACKSPACE] = 'Game.objects.pop()'
+        self.shortcuts[(K_BACKSPACE, KMOD_LMETA)] = 'Game.objects.pop()'
         
         Text('Floating text', size=50)
-        Text('Press A to add, BACK to remove', size=24)
+        Text('Press A to add, cmd+BACK to remove', size=24)
         for i in range(10):
             self.new_text()
 

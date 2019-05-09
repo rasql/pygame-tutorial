@@ -23,7 +23,7 @@ class TextDemo(Game):
                 self.objects.pop()
             else:
                 s = self.objects[-1].str + event.unicode
-                self.objects[-1].set(s)
+                self.objects[-1].render()
 
         elif event.type == MOUSEBUTTONDOWN:
             rect = Rect(event.pos, (10, 10))
