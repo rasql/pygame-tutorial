@@ -8,9 +8,9 @@ class GuiDemo5(Game):
     """Make a subclass of the Game class."""
     def __init__(self):
         super(GuiDemo5, self).__init__()
-        Text('Selecting objects', size=48)
+        Text('Selecting objects')
         Text('Click to select', size=24)
-        Text('Cmd-drag to move')
+        Text('Ctrl-drag to move')
         Text('Type to edit text')
         Text('Cmd-V to animate')
 

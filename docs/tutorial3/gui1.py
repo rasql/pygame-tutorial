@@ -17,8 +17,8 @@ d = {
 class ShortcutDemo(Game):
     def __init__(self):
         super(ShortcutDemo, self).__init__()
-        Text('Shortcuts', size=100)
-        Text('Press A, with shift, ctrl, alt and cmd', size=50)
+        Text('Shortcuts')
+        Text('Press A, with shift, ctrl, alt and cmd', size=24)
 
     def on_event(self, event):
         if event.type == KEYDOWN:

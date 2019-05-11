@@ -173,7 +173,7 @@ class Line(Shape):
 class Text(Shape):
     """Draw a line of text on the screen."""
     fontcolor = BLACK
-    fontsize = 24
+    fontsize = 48
     fontname = None
     bgcolor = None
 
@@ -267,7 +267,7 @@ class Button(Shape):
             Button.size = list(size)
         self.size = Button.size
         self.rect.size = self.size
-        Game.pos[1] += Button.size[1]
+        Shape.pos[1] += Button.size[1]
 
         if d != None:
             Button.d = d
@@ -432,13 +432,7 @@ class Game():
                         self.current_obj.on_key(event)
 
                 elif event.type == MOUSEBUTTONDOWN:
-                    for obj in Game.objects:
-                        if obj.rect.collidepoint(event.pos):
-                            if self.current_obj:
-                                self.current_obj.is_active = False
-                            self.current_obj = obj
-                            obj.is_active = True
-                            obj.on_click(event)
+                    self.select_objects(event)
 
                 elif event.type == MOUSEMOTION:
                     if self.current_obj:
@@ -482,6 +476,18 @@ class Game():
         """Return the objects at position."""
         return [obj for obj in Game.objects if obj.rect.collidepoint(pos)]
 
+    def select_objects(self, event):
+        """Select objects at position pos."""
+        objs = self.find_objects(event.pos)
+        for obj in objs:
+            if self.current_obj:
+                self.current_obj.is_active = False
+            self.current_obj = obj
+            obj.is_active = True
+            obj.on_click(event)
+        if len(objs) == 0:
+            self.current_obj.is_active = False
+
     def do_shortcuts(self, event):
         """Check if the key/mod combination is part of the shortcuts
         dictionary and execute it. More shortcuts can be added 
@@ -493,6 +499,8 @@ class Game():
             exec(self.shortcuts[k])
         elif (k, m) in self.shortcuts:
             exec(self.shortcuts[k, m])
-        
+
+
+
 if __name__ == '__main__':
     Game().run()

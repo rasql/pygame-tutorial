@@ -17,6 +17,7 @@ This tutorial explains how to make interactive games and applications with Pygam
    tutorial3/tutorial3
    tutorial4/board
    sandbox
+   todo
 
 Indices and tables
 ==================

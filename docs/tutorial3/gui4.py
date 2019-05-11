@@ -1,26 +1,19 @@
-"""Editing graphical shapes.
-* placing rectangles"""
+"""Editing graphical shapes. placing rectangles"""
 
 import pygame
 from random import randint
 from pygame.locals import *
 from pygamelib import *
 
-words = ['beauty', 'strength', 'love', 'dream', 'silence']
-cmd = {
-    K_BACKSPACE:'Game.objects.pop()',
-    K_p:'Game.capture(self)',
-    K_t:'print("test")',}
-
 class GuiDemo(Game):
     """Draw text in different sizes and colors."""
     def __init__(self):
         super(GuiDemo, self).__init__()
+        self.shortcuts[K_BACKSPACE] = 'Game.objects.pop()'
         Text('Placing rectangles', size=50)
         Text('Press A to add, BACK to remove', size=24)
         self.editing = False
         self.cmd = cmd
-
 
     def on_event(self, event):
         if event.type == MOUSEBUTTONDOWN:

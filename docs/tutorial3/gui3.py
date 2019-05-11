@@ -17,7 +17,7 @@ class VarDemo(Game):
         self.var2 = 'hello'
         self.var3 = True
 
-        Text('Display variables', size=48)
+        Text('Display variables')
         Text('Press Up/Down to inc by 1', size=24)
         Text('Press shift+Up/Down to inc by 10')
         Text('var1 = ' + str(self.var1))

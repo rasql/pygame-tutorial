@@ -1,8 +1,4 @@
-"""Menu elements
-* Button
-* ListMenu
-* Var
-"""
+"""Place clickable buttons on the screen."""
 
 import pygame
 from random import randint
@@ -19,13 +15,12 @@ class ButtonDemo(Game):
     def __init__(self):
         super(ButtonDemo, self).__init__()
         self.shortcuts.update(cmd)
-        Text('Button Demo', size=48)
+        Text('Button Demo')
         Text('Press A to add, BACK to remove', size=24)
         
-        Button('Start 1', 'print("start 1")')
+        Button('Start 1', 'print("start 1")', pos=(10, 100))
         Button('Start 2', 'print("start 2")')
-        Button('Stop', 'Game.running=False', pos=(200, 100), color=YELLOW)
-        Button('Quit', 'sys.exit()')
+        Button('Stop', 'sys.exit()', pos=(200, 100), color=YELLOW)
 
 if __name__ == '__main__':
     ButtonDemo().run()
