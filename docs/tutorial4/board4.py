@@ -6,14 +6,14 @@ from pygamelib import *
 import numpy as np
 
 class BoardDemo(Game):
-    """Draw cells in random colors."""
+    """Calculate the color pattern."""
     def __init__(self):
         super(BoardDemo, self).__init__()
-        Text('Checker', size=48)
+        Text('Checker')
         Text('Create a pattern', size=24)
 
-        n, m = 10, 16
-        b = Board(n, m, pos=(200, 10))
+        n, m = 4, 8
+        b = Board(n, m, pos=(200, 20))
         b.color_list = [None, RED]
         b.colors = np.fromfunction(lambda x, y: (x + y) % 2, (n, m), dtype=int)
         b.T = b.colors

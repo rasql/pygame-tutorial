@@ -9,11 +9,11 @@ class BoardDemo(Game):
     """Draw cells in random colors."""
     def __init__(self):
         super(BoardDemo, self).__init__()
-        Text('Color', size=48)
+        Text('Color')
         Text('Add random colors', size=24)
 
-        n, m = 10, 16
-        b = Board(n, m, pos=(200, 10))
+        n, m = 4, 8
+        b = Board(n, m, pos=(200, 20))
         b.color_list = [None, RED, GREEN, BLUE, YELLOW]
         b.colors = np.random.randint(0, 5, (n, m))
         b.T = b.colors

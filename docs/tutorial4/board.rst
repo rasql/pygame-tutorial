@@ -23,7 +23,7 @@ Selecting cells with the mouse
 .. autoclass:: BoardDemo2
     :members:
 
-.. image:: BoardDemo2.png
+.. image:: board2.png
 
 
 Adding background color
@@ -34,4 +34,14 @@ Adding background color
 .. autoclass:: BoardDemo
     :members:
 
-.. image:: BoardDemo.png
+.. image:: board3.png
+
+Create a checkerboard pattern
+-----------------------------
+
+.. automodule:: board4
+
+.. autoclass:: BoardDemo
+    :members:
+
+.. image:: board4.png

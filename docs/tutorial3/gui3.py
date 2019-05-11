@@ -5,10 +5,10 @@ from random import randint
 from pygame.locals import *
 from pygamelib import *
 
-class VarDemo(Game):
+class GuiDemo(Game):
     """Display variables."""
     def __init__(self):
-        super(VarDemo, self).__init__()
+        super(GuiDemo, self).__init__()
         self.shortcuts[K_UP] = 'self.var1 += 1; print(self.var1)'
         self.shortcuts[K_DOWN] = 'self.var1 -= 1; print(self.var1)'
         self.shortcuts[(K_UP, KMOD_LSHIFT)] = 'self.var1 += 10; print(self.var1)'
@@ -25,4 +25,4 @@ class VarDemo(Game):
         Text('var3 = ' + str(self.var3))
 
 if __name__ == '__main__':
-    VarDemo().run()
+    GuiDemo().run()

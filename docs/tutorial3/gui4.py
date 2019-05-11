@@ -13,7 +13,6 @@ class GuiDemo(Game):
         Text('Placing rectangles', size=50)
         Text('Press A to add, BACK to remove', size=24)
         self.editing = False
-        self.cmd = cmd
 
     def on_event(self, event):
         if event.type == MOUSEBUTTONDOWN:

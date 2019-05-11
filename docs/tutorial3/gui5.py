@@ -4,10 +4,10 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class GuiDemo5(Game):
+class GuiDemo(Game):
     """Make a subclass of the Game class."""
     def __init__(self):
-        super(GuiDemo5, self).__init__()
+        super(GuiDemo, self).__init__()
         Text('Selecting objects')
         Text('Click to select', size=24)
         Text('Ctrl-drag to move')
@@ -21,4 +21,4 @@ class GuiDemo5(Game):
         Text('ABC')
 
 if __name__ == '__main__':
-    GuiDemo5().run()
+    GuiDemo().run()

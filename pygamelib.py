@@ -40,7 +40,7 @@ class Shape:
     * position, speed, 
     * friction, gravity
     """
-    pos = [10, 10]   # default position
+    pos = [20, 20]   # default position
     size = [100, 40] # default size
     gap = 2          # defalut gap
     color = GREEN    # default color
@@ -294,8 +294,10 @@ class Board(Shape):
     dx, dy  size of cell
     x0, y0  origin of first cell
     """
+    size = 50, 50
+    dim = 4, 4
     
-    def __init__(self, n=8, m=8, dx=20, dy=20, pos=None, **kwargs):
+    def __init__(self, n=4, m=4, dx=50, dy=50, pos=None, **kwargs):
         self.size = (m * dx, n * dy)
         super(Board, self).__init__(pos=pos, size=self.size, **kwargs)
         self.n = n
@@ -413,6 +415,7 @@ class Game():
         self.current_obj = None
         self.shortcuts = {  K_ESCAPE:'Game.running=False', 
                             K_p:'self.capture()',
+                            K_w:'self.where()'
         }
         Game.running = True
     
@@ -468,7 +471,8 @@ class Game():
         calling class, under the class name in PNG format."""
         name = type(self).__name__
         module = sys.modules['__main__']
-        path = os.path.dirname(module.__file__)
+        path, name = os.path.split(module.__file__)
+        name, ext = os.path.splitext(name)
         filename = path + '/' + name + '.png'
         pygame.image.save(Game.screen, filename)
 
@@ -500,7 +504,14 @@ class Game():
         elif (k, m) in self.shortcuts:
             exec(self.shortcuts[k, m])
 
-
+    def where(self):
+        """Print the current module and path."""
+        module = sys.modules['__main__']
+        path, name = os.path.split(module.__file__)
+        name, ext = os.path.splitext(name)
+        print('path =', path)
+        print('name =', name)
+        print('ext =', ext)
 
 if __name__ == '__main__':
     Game().run()

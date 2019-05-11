@@ -1,15 +1,15 @@
 Work with text
 ==============
 
-.. automodule:: TextDemo
+.. automodule:: text1
    :members:
 
-.. image:: TextDemo.png
+.. image:: text1.png
 
-.. automodule:: TextDemo2
+.. automodule:: text2
    :members:
 
-.. image:: TextDemo2.png
+.. image:: text2.png
 
 GUI
 ---
@@ -81,7 +81,7 @@ Selecting objects
 
 .. automodule:: gui5
 
-.. autoclass:: GuiDemo5
+.. autoclass:: GuiDemo
    :members:
 
-.. image:: GuiDemo5.png
+.. image:: gui5.png
