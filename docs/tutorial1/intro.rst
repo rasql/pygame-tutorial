@@ -64,7 +64,7 @@ In order to quit the game with the window close button (QUIT event) we modify th
 
     pygame.quit()
 
-.. image:: tutorial2.png
+.. image:: intro2.png
 
 Object oriented Programming
 ---------------------------
@@ -72,12 +72,12 @@ Object oriented Programming
 From now on we will use **object-oriented programming (OOP)** style. We define a :class:`Game` class which is main game object.
 It has a :meth:`run()` method which launches the event loop.
 
-.. automodule:: tutorial3
+.. automodule:: intro3
 
 .. autoclass:: Game
    :members:
 
-.. image:: tutorial3.png
+.. image:: intro3.png
 
 Changing background color
 -------------------------
@@ -104,12 +104,12 @@ and within the all possible key down events we use the R, G, and B key to set th
     elif event.key == pygame.K_b:
         self.color = BLUE
 
-.. automodule:: tutorial4
+.. automodule:: intro4
 
 .. autoclass:: Game
    :members:
 
-.. image:: tutorial4.png
+.. image:: intro4.png
 
 Display text
 ------------
@@ -127,35 +127,35 @@ This ``Surface`` object can be placed on the screen like any image::
 
     self.screen.blit(self.text, (20, 20))
 
-.. automodule:: tutorial5
+.. automodule:: intro5
 
 .. autoclass:: Game
    :members:
 
-.. image:: tutorial5.png
+.. image:: intro5.png
 
 Composing an RGB color
 ----------------------
 
 In the following program we use the R, G, and B key to compose the RGB value of the background color.
 
-.. automodule:: tutorial6
+.. automodule:: intro6
 
 .. autoclass:: Game
    :members:
 
-.. image:: tutorial6.png
+.. image:: intro6.png
 
 
 Display the mouse position
 --------------------------
 
-.. automodule:: tutorial7
+.. automodule:: intro7
 
 .. autoclass:: Game
    :members:
 
-.. image:: tutorial7.png
+.. image:: intro7.png
 
 Demo
 ----

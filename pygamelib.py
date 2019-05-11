@@ -302,17 +302,17 @@ class Board(Shape):
         self.m = m
         self.i = 0
         self.j = 0
-        self.col = RED
         self.dx = dx
         self.dy = dy
         self.x0, self.y0 = self.pos
         self.sel = set()    # set of selected cells
         self.rect = Rect(self.pos, self.size)
-        self.is_active = False
         self.wrap = False
         self.T = np.zeros((n, m), int)
+        self.colors = np.zeros((n, m), int)
+        self.color_list = [None]
         
-    def draw(self):
+    def draw_lines(self):
         x0, y0 = self.pos
         x1, y1 = self.get_pos((self.n, self.m))
         for i in range(self.n+1):
@@ -322,36 +322,59 @@ class Board(Shape):
             x = x0 + j * self.dx
             pygame.draw.line(Game.screen, BLACK, (x, y0), (x, y1))
 
+    def draw_cells(self):
         for i in range(self.n):
             font = pygame.font.Font(None, 24)
             for j in range(self.m):
+                global colors
                 x, y = self.get_pos((i, j))
                 text = font.render(str(self.T[i, j]), True, BLACK)
-                rect = text.get_rect()
-                rect.center = x + self.dx//2, y + self.dy//2
-                Game.screen.blit(text, rect)
+                text_rect = text.get_rect()
+                text_rect.center = x + self.dx//2, y + self.dy//2
+                color = self.color_list[self.colors[i, j]]
+                rect = self.get_rect((i, j))
+                if color != None:
+                    pygame.draw.rect(Game.screen, color, rect)
+                Game.screen.blit(text, text_rect)
         
+    def draw(self):
+        self.draw_cells()
+        self.draw_lines()
         for s in self.sel:
             rect = pygame.Rect(self.get_pos(s), (self.dx, self.dy))
             pygame.draw.rect(Game.screen, RED, rect, 3)
         Shape.draw(self)
-    
+
+    def fill(self, index, color):
+        """Fill cell (i, j) with color."""
+        rect = Rect(self.get_pos(index), (self.dx, self.dy))
+        pygame.draw.rect(Game.screen, color, rect)
+
     def get_index(self, pos):
+        """Get index (i, j) from position (x, y)."""
         j = (pos[0] - self.pos[0]) // self.dx
         i = (pos[1] - self.pos[1]) // self.dy
         return i, j
 
     def get_pos(self, index):
+        """Get position (x, y) from index (i, j)."""
         x = self.pos[0] + index[1] * self.dx
         y = self.pos[1] + index[0] * self.dy
         return x, y
 
+    def get_rect(self, index):
+        """Get the cell rectangle from the index (i, j)."""
+        return Rect(self.get_pos(index), (self.dx, self.dy))
+
     def on_click(self, event):
         """Add clicked cell to selection."""
+        i, j = self.get_index(event.pos)
         if pygame.key.get_mods() & KMOD_META:
-            self.sel.add(self.get_index(event.pos))
+            self.sel.add((i, j))
+        elif pygame.key.get_mods() & KMOD_SHIFT:
+            pass
         else:
-            self.sel = set([self.get_index(event.pos)])
+            self.sel = set([(i, j)])
 
     def on_key(self, event):
         """Move the current cell if there is only one."""
@@ -419,7 +442,7 @@ class Game():
 
                 elif event.type == MOUSEMOTION:
                     if self.current_obj:
-                        if pygame.key.get_mods() & KMOD_META:
+                        if pygame.key.get_mods() & KMOD_LCTRL:
                             self.current_obj.pos = list(event.pos)
 
                 elif event.type == VIDEORESIZE:

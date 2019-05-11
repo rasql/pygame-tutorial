@@ -12,9 +12,10 @@ This tutorial explains how to make interactive games and applications with Pygam
    :maxdepth: 2
    :caption: Contents:
 
-   tutorial1/tutorial1
-   tutorial2/tutorial2
+   tutorial1/intro
+   tutorial2/draw
    tutorial3/tutorial3
+   tutorial4/board
    sandbox
 
 Indices and tables
