@@ -32,7 +32,7 @@ class Text:
     def draw(self):
         """Draw the text on the screen."""
         self.text = self.font.render(self.str, True, self.color)
-        Game.screen.blit(self.text, self.pos)
+        App.screen.blit(self.text, self.pos)
 
 
 class ListLabel(Text):
@@ -68,7 +68,7 @@ class Line:
         self.d = d
 
     def draw(self):
-        pygame.draw.line(Game.screen, self.col, self.rect.topleft, self.rect.bottomright, self.d)
+        pygame.draw.line(App.screen, self.col, self.rect.topleft, self.rect.bottomright, self.d)
 
 class Color:
     """Select and return a specific color."""
@@ -87,11 +87,11 @@ class Color:
         self.index %= len(Color.str)
         self.color = Color.colors[self.index]
 
-class Game():
+class App():
     """Define the main game object and its attributes."""
     def __init__(self):
         pygame.init()
-        Game.screen = pygame.display.set_mode((640, 240))
+        App.screen = pygame.display.set_mode((640, 240))
         self.objects = [Text('Mouse-drag to place a line')]
 
         self.bg = ListLabel('Backeground = ', colors, index=1, pos=(0, 20))
@@ -150,4 +150,4 @@ class Game():
         pygame.display.flip()
 
 if __name__ == '__main__':
-  Game().run()
+  App().run()

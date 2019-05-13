@@ -6,7 +6,7 @@ from pygamelib import *
 
 colors = (RED, GREEN, BLUE, YELLOW, MAGENTA, CYAN, GRAY)
 
-class MovingShapeDemo(Game):
+class MovingShapeDemo(App):
     """Draw ellipses in different sizes and colors."""
     def __init__(self):
         super(MovingShapeDemo, self).__init__()
@@ -14,8 +14,8 @@ class MovingShapeDemo(Game):
         for i in range(20):
             w = randint(10, 50)
             h = randint(10, 50)
-            x = randint(0, Game.screen.get_width()-w)
-            y = randint(0, Game.screen.get_height()-h)
+            x = randint(0, App.screen.get_width()-w)
+            y = randint(0, App.screen.get_height()-h)
             d = randint(0, 1)
             vx = randint(-2, 2)
             vy = randint(-2, 2)

@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class Game():
+class App():
     """Define the main game object and its attributes."""
     def __init__(self):
         pygame.init()
@@ -50,4 +50,4 @@ class Game():
         pygame.display.flip()
 
 if __name__ == '__main__':
-  Game().run()
+  App().run()

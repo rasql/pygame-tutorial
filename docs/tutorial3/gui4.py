@@ -5,11 +5,11 @@ from random import randint
 from pygame.locals import *
 from pygamelib import *
 
-class GuiDemo(Game):
+class GuiDemo(App):
     """Draw text in different sizes and colors."""
     def __init__(self):
         super(GuiDemo, self).__init__()
-        self.shortcuts[K_BACKSPACE] = 'Game.objects.pop()'
+        self.shortcuts[K_BACKSPACE] = 'App.objects.pop()'
         Text('Placing rectangles', size=50)
         Text('Press A to add, BACK to remove', size=24)
         self.editing = False
@@ -26,7 +26,7 @@ class GuiDemo(Game):
 
         elif event.type == MOUSEMOTION:
             if self.editing:
-                Game.objects[-1].rect.inflate_ip(event.rel)
+                App.objects[-1].rect.inflate_ip(event.rel)
 
         elif event.type == MOUSEBUTTONUP:
             self.editing = False

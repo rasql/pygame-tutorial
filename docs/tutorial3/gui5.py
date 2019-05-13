@@ -4,8 +4,8 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class GuiDemo(Game):
-    """Make a subclass of the Game class."""
+class GuiDemo(App):
+    """Make a subclass of the App class."""
     def __init__(self):
         super(GuiDemo, self).__init__()
         Text('Selecting objects')

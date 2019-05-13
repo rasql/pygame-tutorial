@@ -7,10 +7,10 @@ from pygamelib import *
 
 words = ['beauty', 'strength', 'love', 'dream', 'silence']
 cmd = {
-    K_BACKSPACE:'Game.objects.pop()',
+    K_BACKSPACE:'App.objects.pop()',
     K_t:'print("test")',}
 
-class ButtonDemo(Game):
+class ButtonDemo(App):
     """Draw text in different sizes and colors."""
     def __init__(self):
         super(ButtonDemo, self).__init__()

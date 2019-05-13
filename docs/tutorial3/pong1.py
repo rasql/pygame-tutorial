@@ -4,7 +4,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class PongDemo(Game):
+class PongDemo(App):
     """Play the game of Pong."""
     def __init__(self):
         super(PongDemo, self).__init__()

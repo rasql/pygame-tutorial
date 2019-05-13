@@ -21,7 +21,7 @@ Most of the functions take a width argument. If the width is 0, the shape is fil
 
 .. automodule:: draw1
 
-.. autoclass:: Game
+.. autoclass:: App
    :members:
 
 .. image:: draw1.png
@@ -59,7 +59,7 @@ Again, when using dictionaries, the code becomes very short and simple::
 
 .. automodule:: draw2
 
-.. autoclass:: Game
+.. autoclass:: App
    :members:
 
 .. image:: draw2.png
@@ -71,7 +71,7 @@ In the next program we use the mouse button to draw a rectangle.
 
  .. automodule:: draw3
 
-.. autoclass:: Game
+.. autoclass:: App
    :members:
 
 .. image:: draw3.png
@@ -81,30 +81,30 @@ Draw lines
 
  .. automodule:: draw4
 
-.. autoclass:: Game
+.. autoclass:: App
    :members:
 
 .. image:: draw4.png
 
 
-The Game class
+The App class
 --------------
 
 The basic structure of a game is always the same.
-We create a ``Game`` class from which we can sub-class our applications.
+We create a ``App`` class from which we can sub-class our applications.
 
 The constructor method
 
 * initilizes the module
-* creates a display window, stored as class variable ``Game.screen``
+* creates a display window, stored as class variable ``App.screen``
 * defines a background color
 * defines an empty ``objects`` list::
 
-    class Game():
+    class App():
         """Define the main game object and its attributes."""
         def __init__(self):
             pygame.init()
-            Game.screen = pygame.display.set_mode((640, 240))
+            App.screen = pygame.display.set_mode((640, 240))
             self.bg_color = WHITE
             self.objects = []
 
@@ -156,7 +156,7 @@ Text demo
 ---------
 
 The basic structure of a game is always the same.
-We create a ``Game`` class from which we can sub-class.
+We create a ``App`` class from which we can sub-class.
 
  .. automodule:: draw6
 
@@ -195,13 +195,13 @@ The constructor methods finds the attribute values for the shape either from the
 class attribute, or from the argument passed::
 
         if pos != None:
-            Game.pos = list(pos)
-        self.pos = Game.pos[:]
+            App.pos = list(pos)
+        self.pos = App.pos[:]
 
         if size != None:
             Shape.size = list(size)
         self.size = Shape.size[:]
-        Game.pos[1] += Shape.size[1] 
+        App.pos[1] += Shape.size[1] 
         
         if color != None:
             Shape.color = color
@@ -219,7 +219,7 @@ At the end we define the enclosing rectangle which is used by some of the drawin
 Finally the object is appended to the objects list::
 
         self.rect = Rect(self.pos, self.size)
-        Game.objects.append(self)
+        App.objects.append(self)
 
 The ``draw()`` method needs to be instantiated separately for each object type::
 
@@ -270,9 +270,9 @@ In order to move the shapes, we add an ``update()`` method to ``Shape``::
     def update(self):
         self.pos[0] += self.v[0]
         self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < Game.screen.get_width()-self.size[0]:
+        if not 0 < self.pos[0] < App.screen.get_width()-self.size[0]:
             self.v[0] *= -1
-        if not 0 < self.pos[1] < Game.screen.get_height()-self.size[1]:
+        if not 0 < self.pos[1] < App.screen.get_height()-self.size[1]:
             self.v[1] *= -1
         self.rect.topleft = self.pos
 

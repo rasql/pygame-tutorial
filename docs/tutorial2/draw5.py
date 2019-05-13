@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class LineDemo(Game):
+class LineDemo(App):
     """Drawing lines with the mouse."""
     def __init__(self):
         super(LineDemo, self).__init__()
@@ -27,7 +27,7 @@ class LineDemo(Game):
 
         elif event.type == MOUSEBUTTONDOWN:
             d = int(self.thick.value)
-            Game.objects.append(Line(event.pos, event.pos, d=d, color=self.color.value))
+            App.objects.append(Line(event.pos, event.pos, d=d, color=self.color.value))
 
         elif event.type == MOUSEMOTION:
             if event.buttons[0]==1:

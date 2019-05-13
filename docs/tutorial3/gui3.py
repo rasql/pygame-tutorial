@@ -5,7 +5,7 @@ from random import randint
 from pygame.locals import *
 from pygamelib import *
 
-class GuiDemo(Game):
+class GuiDemo(App):
     """Display variables."""
     def __init__(self):
         super(GuiDemo, self).__init__()

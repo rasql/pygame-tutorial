@@ -18,7 +18,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class TextDemo(Game):
+class TextDemo(App):
     """Draw text in different sizes and colors."""
     def __init__(self):
         super(TextDemo, self).__init__()

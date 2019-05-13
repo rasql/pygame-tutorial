@@ -76,7 +76,7 @@ class Shape:
         self.rect = Rect(self.pos, self.size)
         self.is_active = False
         self.cmd = ''
-        Game.objects.append(self)
+        App.objects.append(self)
 
     def draw(self):
         """Draw the object to the screen."""
@@ -103,15 +103,15 @@ class Shape:
         """Surround the object with a frame."""
         color = Shape.selection_color
         d = Shape.selection_d
-        pygame.draw.rect(Game.screen, color, self.rect, d)
+        pygame.draw.rect(App.screen, color, self.rect, d)
 
     def update(self):
         """Update the position of the object."""
         self.pos[0] += self.v[0]
         self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < Game.w-self.rect.w:
+        if not 0 < self.pos[0] < App.w-self.rect.w:
             self.v[0] *= -1
-        if not 0 < self.pos[1] < Game.h-self.rect.h:
+        if not 0 < self.pos[1] < App.h-self.rect.h:
             self.v[1] *= -1
         self.rect.topleft = self.pos
 
@@ -121,7 +121,7 @@ class Rectangle(Shape):
         super(Rectangle, self).__init__(**kwargs)
 
     def draw(self):
-        pygame.draw.rect(Game.screen, self.color, self.rect, self.d)
+        pygame.draw.rect(App.screen, self.color, self.rect, self.d)
         Shape.draw(self)
  
 
@@ -131,7 +131,7 @@ class Ellipse(Shape):
         super(Ellipse, self).__init__(**kwargs)
 
     def draw(self):
-        pygame.draw.ellipse(Game.screen, self.color, self.rect, self.d)
+        pygame.draw.ellipse(App.screen, self.color, self.rect, self.d)
         Shape.draw(self)
 
 
@@ -142,7 +142,7 @@ class Polygon(Shape):
         self.points = points
 
     def draw(self):
-        pygame.draw.polygon(Game.screen, self.color, self.points, self.d)
+        pygame.draw.polygon(App.screen, self.color, self.points, self.d)
         Shape.draw(self)
 
 
@@ -154,7 +154,7 @@ class Arc(Shape):
         self.stop = stop
 
     def draw(self):
-        pygame.draw.arc(Game.screen, self.color, self.rect, self.start, self.stop, self.d)
+        pygame.draw.arc(App.screen, self.color, self.rect, self.start, self.stop, self.d)
         Shape.draw(self)
 
 
@@ -166,7 +166,7 @@ class Line(Shape):
         self.stop = stop
 
     def draw(self):
-        pygame.draw.line(Game.screen, self.color, self.start, self.stop, self.d)
+        pygame.draw.line(App.screen, self.color, self.start, self.stop, self.d)
         Shape.draw(self)
 
 
@@ -207,7 +207,7 @@ class Text(Shape):
 
     def draw(self):
         """Draw the text on the screen."""
-        Game.screen.blit(self.text, self.pos)
+        App.screen.blit(self.text, self.pos)
         Shape.draw(self)
 
     def on_key(self, event):
@@ -279,9 +279,9 @@ class Button(Shape):
         self.text_rect.center = self.rect.center
 
     def draw(self):
-        pygame.draw.rect(Game.screen, self.color, self.rect, 0)
-        pygame.draw.rect(Game.screen, BLACK, self.rect, self.d)
-        Game.screen.blit(self.text, self.text_rect)
+        pygame.draw.rect(App.screen, self.color, self.rect, 0)
+        pygame.draw.rect(App.screen, BLACK, self.rect, self.d)
+        App.screen.blit(self.text, self.text_rect)
 
     def on_click(self, event):
         eval(self.cmd)
@@ -319,10 +319,10 @@ class Board(Shape):
         x1, y1 = self.get_pos((self.n, self.m))
         for i in range(self.n+1):
             y = y0 + i * self.dy
-            pygame.draw.line(Game.screen, BLACK, (x0, y), (x1, y))
+            pygame.draw.line(App.screen, BLACK, (x0, y), (x1, y))
         for j in range(self.m+1):
             x = x0 + j * self.dx
-            pygame.draw.line(Game.screen, BLACK, (x, y0), (x, y1))
+            pygame.draw.line(App.screen, BLACK, (x, y0), (x, y1))
 
     def draw_cells(self):
         for i in range(self.n):
@@ -336,21 +336,21 @@ class Board(Shape):
                 color = self.color_list[self.colors[i, j]]
                 rect = self.get_rect((i, j))
                 if color != None:
-                    pygame.draw.rect(Game.screen, color, rect)
-                Game.screen.blit(text, text_rect)
+                    pygame.draw.rect(App.screen, color, rect)
+                App.screen.blit(text, text_rect)
         
     def draw(self):
         self.draw_cells()
         self.draw_lines()
         for s in self.sel:
             rect = pygame.Rect(self.get_pos(s), (self.dx, self.dy))
-            pygame.draw.rect(Game.screen, RED, rect, 3)
+            pygame.draw.rect(App.screen, RED, rect, 3)
         Shape.draw(self)
 
     def fill(self, index, color):
         """Fill cell (i, j) with color."""
         rect = Rect(self.get_pos(index), (self.dx, self.dy))
-        pygame.draw.rect(Game.screen, color, rect)
+        pygame.draw.rect(App.screen, color, rect)
 
     def get_index(self, pos):
         """Get index (i, j) from position (x, y)."""
@@ -396,8 +396,8 @@ class Board(Shape):
                 self.sel = {(i, j)}
 
 
-class Game():
-    """Define the main game object and its attributes."""
+class App():
+    """Define the main application object and its methods."""
 
     objects = []   # objects to display
     selection = [] # current selection
@@ -406,26 +406,26 @@ class Game():
         """Initialize pygame and set up the display screen."""
         pygame.init()
         flags = RESIZABLE
-        Game.screen = pygame.display.set_mode((640, 240), flags)
-        Game.w = Game.screen.get_width()
-        Game.h = Game.screen.get_height()
+        App.screen = pygame.display.set_mode((640, 240), flags)
+        App.w = App.screen.get_width()
+        App.h = App.screen.get_height()
         self.bg_color = LIGHTGRAY
         self.key = None
         self.mod = None
         self.current_obj = None
-        self.shortcuts = {  K_ESCAPE:'Game.running=False', 
+        self.shortcuts = {  K_ESCAPE:'App.running=False', 
                             K_p:'self.capture()',
                             K_w:'self.where()'
         }
-        Game.running = True
+        App.running = True
     
     def run(self):
         """Run the main event loop.
         Handle the QUIT event and call ``on_event``. """
-        while Game.running:
+        while App.running:
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    Game.running = False
+                    App.running = False
 
                 elif event.type == KEYDOWN:
                     self.do_shortcuts(event)
@@ -456,13 +456,13 @@ class Game():
 
     def update(self):
         """Update the screen objects."""
-        for object in Game.objects:
+        for object in App.objects:
             object.update()
 
     def draw(self):
         """Draw the game objects to the screen."""
         self.screen.fill(self.bg_color)
-        for object in Game.objects:
+        for object in App.objects:
             object.draw()
         pygame.display.flip()
     
@@ -474,11 +474,11 @@ class Game():
         path, name = os.path.split(module.__file__)
         name, ext = os.path.splitext(name)
         filename = path + '/' + name + '.png'
-        pygame.image.save(Game.screen, filename)
+        pygame.image.save(App.screen, filename)
 
     def find_objects(self, pos):
         """Return the objects at position."""
-        return [obj for obj in Game.objects if obj.rect.collidepoint(pos)]
+        return [obj for obj in App.objects if obj.rect.collidepoint(pos)]
 
     def select_objects(self, event):
         """Select objects at position pos."""
@@ -514,4 +514,4 @@ class Game():
         print('ext =', ext)
 
 if __name__ == '__main__':
-    Game().run()
+    App().run()

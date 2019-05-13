@@ -3,7 +3,7 @@
 import pygame
 from pygamelib import *
 
-class RectangleDemo(Game):
+class RectangleDemo(App):
     """Draw rectangles in different sizes and colors."""
     def __init__(self):
         super(RectangleDemo, self).__init__()

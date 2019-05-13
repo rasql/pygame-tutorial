@@ -24,7 +24,7 @@ class Game():
                     running = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
-                        self.color = RED
+                        self.color = pygame.Color('red')
                     elif event.key == pygame.K_g:
                         self.color = GREEN
                     elif event.key == pygame.K_b:

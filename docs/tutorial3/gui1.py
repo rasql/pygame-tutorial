@@ -14,7 +14,7 @@ d = {
     K_LEFT:'print("LEFT")',
 }
 
-class ShortcutDemo(Game):
+class ShortcutDemo(App):
     def __init__(self):
         super(ShortcutDemo, self).__init__()
         Text('Shortcuts')

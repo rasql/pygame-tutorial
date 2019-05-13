@@ -4,7 +4,7 @@ import pygame
 from pygame.locals import *
 from pygamelib import *
 
-class BoardDemo2(Game):
+class BoardDemo2(App):
     """Draw two 4x4 boards and select cells with mouse click."""
     def __init__(self):
         super(BoardDemo2, self).__init__()

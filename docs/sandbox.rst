@@ -18,7 +18,7 @@ Domains can provide custom indeces (like the Python module).
 
 The function :py:func:`spam` does a similar thing.
 
-The class :class:`Game` is always used to subclass a game application.
+The class :class:`App` is always used to subclass a game application.
 
 .. function:: pyfunc()
 
@@ -48,7 +48,7 @@ Directives
 
    Describe data.
 
-.. class:: Game
+.. class:: App
 
    Describe class without parameters.
 
@@ -56,7 +56,7 @@ Directives
 
    Describe the method.
 
-.. class:: Game(parameters)
+.. class:: App(parameters)
 
    Describe class with parameters.
 
@@ -110,9 +110,9 @@ Classes are listed in alphabetical order.
    :members:
    :member-order: bysource
 
-The Game class
+The App class
 --------------
 
-.. autoclass:: pygamelib.Game
+.. autoclass:: pygamelib.App
    :members:
    :member-order: bysource

@@ -12,7 +12,7 @@ class Rectangle:
         self.col = RED
 
     def draw(self):
-        pygame.draw.rect(Game.screen, self.col, self.rect)
+        pygame.draw.rect(App.screen, self.col, self.rect)
     
 class Ellipse:
     """Draw an ellipse on the screen."""
@@ -21,7 +21,7 @@ class Ellipse:
         self.col = BLUE
 
     def draw(self):
-        pygame.draw.ellipse(Game.screen, self.col, self.rect)
+        pygame.draw.ellipse(App.screen, self.col, self.rect)
 
 class Text:
     """Draw a line of text on the screen."""
@@ -35,13 +35,13 @@ class Text:
     def draw(self):
         """Draw the text on the screen."""
         self.text = self.font.render(self.str, True, self.color)
-        Game.screen.blit(self.text, self.pos)
+        App.screen.blit(self.text, self.pos)
 
-class Game():
+class App():
     """Define the main game object and its attributes."""
     def __init__(self):
         pygame.init()
-        Game.screen = pygame.display.set_mode((640, 240))
+        App.screen = pygame.display.set_mode((640, 240))
         self.bg = YELLOW
         self.objects = []
         self.objects.append(Text('mouse-click to place rect, back-space to remove rect'))
@@ -86,4 +86,4 @@ class Game():
         pygame.display.flip()
 
 if __name__ == '__main__':
-  Game().run()
+  App().run()

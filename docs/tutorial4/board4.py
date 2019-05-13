@@ -5,7 +5,7 @@ from pygame.locals import *
 from pygamelib import *
 import numpy as np
 
-class BoardDemo(Game):
+class BoardDemo(App):
     """Calculate the color pattern."""
     def __init__(self):
         super(BoardDemo, self).__init__()

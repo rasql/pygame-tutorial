@@ -3,7 +3,7 @@
 import pygame
 from pygamelib import *
 
-class ShapeDemo(Game):
+class ShapeDemo(App):
     """Draw ellipses in different sizes and colors."""
     def __init__(self):
         super(ShapeDemo, self).__init__()
