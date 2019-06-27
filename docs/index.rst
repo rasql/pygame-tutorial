@@ -12,6 +12,7 @@ This tutorial explains how to make interactive games and applications with Pygam
    :maxdepth: 2
    :caption: Contents:
 
+   app/app
    tutorial1/intro
    tutorial2/draw
    tutorial3/tutorial3
