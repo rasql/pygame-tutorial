@@ -3,7 +3,7 @@ from pg_app import *
 class Demo(App):
     def __init__(self):
         super().__init__()
-        Scene()
+        Scene(caption='Scene 1')
         Text('Nodes')
         Node()
         Node()

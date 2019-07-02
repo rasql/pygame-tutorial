@@ -1,0 +1,2 @@
+class Button:
+    pass

@@ -1,3 +1,10 @@
+"""
+Create the application class
+----------------------------
+
+
+"""
+
 import pygame
 from pygame.locals import *
 import os
@@ -31,6 +38,7 @@ class Scene:
         self.id = Scene.id
         Scene.id += 1
         self.nodes = []
+        se
 
         Scene.options.update(options)
         self.bg = Scene.options['bg']
@@ -56,6 +64,16 @@ class Scene:
 
 class Node:
     """Create a node."""
+    default= {'pos': (20, 20),
+                    'size': (100, 40),
+                    'dir': (0, 1),
+                    'gap': (10, 10),
+                    'color': Color('red'),
+                    'd': 1,
+                    'id': 0,
+                    'selected': False,
+                    'visible': True}
+
     options = {}
 
     def __init__(self, **options):
@@ -214,8 +232,10 @@ class App:
 
 
 if __name__ == '__main__':
+
     app = App()
     s0 = Scene()
+    Scene(bg=Color('pink'), caption='My Scene')
     App.scenes.append(s0)
     App.scene = s0
     app.run()
