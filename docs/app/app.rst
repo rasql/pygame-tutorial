@@ -2,14 +2,21 @@ Making Apps with Pygame
 =======================
 
 In this tutorial we are going to create applications and games with Pygame.
-Pygame only allows one single window. Within one window, we can switch Scenes.
-Each scene has objects.
+Pygame only allows to create one single window. A game or application cannot
+have multiple windows. If a dialog window is needed, it must be displayed within the main window.
+
+Within a game we will need multples scenes (sometimes called rooms, or levels).
+Each scene contains objects with can be :
+- text
+- sprites (images)
+- GUI elements (buttons, menus)
+- shapes (rectangles, circles)
 
 The App class
 -------------
 
-We are going to build an app based on pygame. So the first thing to do is to import 
-the module, as well as a series of useful constants::
+The basis for a game or application is the ``App`` class. The first thing to do is to import 
+the ``Pygame`` module, as well as a series of useful constants::
 
     import pygame
     from pygame.locals import *

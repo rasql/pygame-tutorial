@@ -3,7 +3,7 @@ from pygame.locals import *
 import os
 import sys
 import inspect
-import numpy as numpy
+import numpy as np
 
 
 class Scene:

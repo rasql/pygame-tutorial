@@ -1,46 +1,30 @@
-"""Choose the RGB components of the background color 
-by pressing the R, G, and B keys ."""
-
 import pygame
+from pygame.locals import *
 
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+width = 640
+height = 320
+speed = [2, 2]
+GREEN = (150, 255, 150)
+running = True
 
-class Game():
-    """Define the main game object and its attributes."""
-    def __init__(self):
-        pygame.init()
-        self.red = 200
-        self.green = 100
-        self.blue = 100
-        self.font = pygame.font.Font(None, 48)
-        self.screen = pygame.display.set_mode((640, 240))
+pygame.init()
+screen = pygame.display.set_mode((width, height))
+ball = pygame.image.load("ball.gif")
+ballrect = ball.get_rect()
 
-    def run(self):
-        """Run the main event loop."""
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        self.red += 10
-                        self.red %= 256
-                    elif event.key == pygame.K_g:
-                        self.green += 10
-                        self.green %= 256
-                    elif event.key == pygame.K_b:
-                        self.blue += 10
-                        self.blue %= 256
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT: 
+            running = False
 
-            self.str = 'R={}, G={}, B={}'.format(self.red, self.green, self.blue)
-            self.text = self.font.render(self.str, False, BLACK)
-            self.screen.fill((self.red, self.green, self.blue))
-            self.screen.blit(self.text, (20, 20))
-            pygame.display.flip()
+    ballrect = ballrect.move(speed)
+    if ballrect.left < 0 or ballrect.right > width:
+        speed[0] = -speed[0]
+    if ballrect.top < 0 or ballrect.bottom > height:
+        speed[1] = -speed[1]
 
-if __name__ == '__main__':
-  Game().run()
+    screen.fill(GREEN)
+    screen.blit(ball, ballrect)
+    pygame.display.flip()
+
+pygame.quit()

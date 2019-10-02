@@ -3,19 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to making games with Pygame!
-====================================
+Welcome to making apps with Pygame!
+===================================
 
-This tutorial explains how to make interactive games and applications with Pygame. It teaches an **object-oriented programming** approach.
+This tutorial explains how to make interactive application and games using Pygame. 
+The first part is a general introduction to pygame without defining classes and objects.
+The second part introduces classes and objects and teaches an **object-oriented programming** 
+approach to making apps.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   app/app
    tutorial1/intro
    tutorial2/draw
    tutorial3/tutorial3
+   app/app
    tutorial4/board
    sandbox
    todo

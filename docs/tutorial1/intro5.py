@@ -1,32 +1,39 @@
-"""Display a red text on the screen."""
-
 import pygame
+from pygame.locals import *
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-class Game():
-    """Define the main game object and its attributes."""
-    def __init__(self):
-        pygame.init()
-        self.font = pygame.font.Font(None, 48)
-        s = 'Hello world.'
-        self.text = self.font.render(s, False, RED)
-        self.screen = pygame.display.set_mode((640, 240))
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+GRAY = (127, 127, 127)
+WHITE = (255, 255, 255)
 
-    def run(self):
-        """Run the main event loop."""
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+key_dict = {K_k:BLACK, K_r:RED, K_g:GREEN, K_b:BLUE, 
+    K_y:YELLOW, K_c:CYAN, K_m:MAGENTA, K_w:WHITE}
 
-            self.screen.fill(BLACK)
-            self.screen.blit(self.text, (20, 20))
-            pygame.display.flip()
+print(key_dict)
 
-if __name__ == '__main__':
-  Game().run()
+pygame.init()
+screen = pygame.display.set_mode((640, 240))
+
+running = True
+background = GRAY
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        if event.type == KEYDOWN:
+            if event.key in key_dict:
+                background = key_dict[event.key]
+                
+                caption = 'background color = ' + str(background)
+                pygame.display.set_caption(caption)
+
+    screen.fill(background)
+    pygame.display.update()
+
+pygame.quit()

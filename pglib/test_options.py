@@ -6,18 +6,20 @@ class MyClass:
     title = 'MyClass'
 
     def __init__(self, **options):
-        
+
+        print('\n', '=' * 30)
+        print(self)
+
         self.pos = (0, 0)
         self.set_options(options)
         self.__dict__.update(options)
 
-        print('\n', '=' * 30)
-        print(self)
+        print('-- instance options', '-'*30)
         self.print_dict(self.__dict__)
+        print('-- class options', '-'*30)
         self.print_dict(self.__class__.__dict__)
 
     def print_dict(self, d):
-        print('-' * 30)
         for k, v in d.items():
             if not k.startswith('_'):
                 print(k, v, sep='\t')

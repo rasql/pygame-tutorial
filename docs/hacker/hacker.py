@@ -140,6 +140,11 @@ class Node:
         """Return a string to name the object."""
         return '{} at ({}, {})'.format(self.__class__.__name__, *self.rect.topleft)
 
+    def __repr__(self):
+        """Return a representation of the object."""
+        return '{}()'.format(self.__class__.__name__)
+
+
 class Text(Node):
     """Create an editable text object."""
     def __init__(self, parent, text, pos=(0, 0), fontcolor=BLACK, **options):

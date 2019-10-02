@@ -1,8 +1,6 @@
 """
 Create the application class
 ----------------------------
-
-
 """
 
 import pygame
@@ -16,7 +14,10 @@ import numpy as numpy
 class Scene:
     """Create a new scene and initialize the node options."""
     id = 0
-    options = {'bg': Color('gray')}
+    options = {'bg': Color('gray'),
+               'caption': 'Scene',
+               'size': (800, 600),
+               'flags': 0, }
 
     node_options = {'pos': (20, 20),
                     'size': (100, 40),
@@ -38,10 +39,12 @@ class Scene:
         self.id = Scene.id
         Scene.id += 1
         self.nodes = []
-        se
 
         Scene.options.update(options)
         self.bg = Scene.options['bg']
+        self.size = Scene.options['size']
+        self.caption = Scene.options['caption']
+        self.set_scene()
 
     def draw(self):
         """Draw all objects in the scene."""
@@ -61,18 +64,22 @@ class Scene:
     def __str__(self):
         return 'Scene {}'.format(self.id)
 
+    def set_scene(self):
+        pygame.display.set_caption(self.caption)
+        pygame.display.set_mode(self.size)
+
 
 class Node:
     """Create a node."""
-    default= {'pos': (20, 20),
-                    'size': (100, 40),
-                    'dir': (0, 1),
-                    'gap': (10, 10),
-                    'color': Color('red'),
-                    'd': 1,
-                    'id': 0,
-                    'selected': False,
-                    'visible': True}
+    default = {'pos': (20, 20),
+               'size': (100, 40),
+               'dir': (0, 1),
+               'gap': (10, 10),
+               'color': Color('red'),
+               'd': 1,
+               'id': 0,
+               'selected': False,
+               'visible': True}
 
     options = {}
 
@@ -81,14 +88,14 @@ class Node:
 
         # create node attributes from class options
         self.__dict__ = Node.options.copy()
-        
+
         # update the position
-        if self.id > 0 : 
+        if self.id > 0:
             x = self.pos[0] + self.dir[0] * (self.size[0] + self.gap[0])
             y = self.pos[1] + self.dir[1] * (self.size[1] + self.gap[1])
             self.pos = x, y
             Node.options['pos'] = x, y
-        
+
         Node.options['id'] += 1
 
         self.rect = Rect(*self.pos, *self.size)
@@ -103,66 +110,17 @@ class Node:
 
     def __str__(self):
         return self.__class__.__name__ + str(self.id)
-            
 
-class Text(Node):
-    """Create a text object which knows how to draw itself."""
-
-    def __init__(self, text, **options):
-        """Instantiate and render the text object."""
-        super().__init__(**options)
-
-        self.str = text
-        self.fontsize = 72
-        self.fontcolor = Color('black')
-        self.render()
-
-        # Append the node to the current window
-        App.scene.nodes.append(self)
-
-    def render(self):
-        """Render the string and create a surface object."""
-        self.font = pygame.font.Font(None, self.fontsize)
-        self.text = self.font.render(self.str, True, self.fontcolor)
-        self.rect = self.text.get_rect()
-        self.rect.topleft = self.pos
-        self.size = self.rect.size
-        Node.options['size'] = self.size
-
-    def draw(self):
-        """Draw the text surface on the screen."""
-        App.screen.blit(self.text, self.pos)
-        Node.draw(self)
-
-
-class Rectangle(Node):
-    """Draw a rectangle on the screen."""
-
-    def __init__(self, **options):
-        super().__init__(**options)
-
-    def draw(self):
-        pygame.draw.rect(App.screen, self.color, self.rect, self.d)
-        Node.draw(self)
-
-
-class Ellipse(Node):
-    """Draw an ellipse on the screen."""
-
-    def __init__(self, **options):
-        super().__init__(**options)
-
-    def draw(self):
-        pygame.draw.ellipse(App.screen, self.color, self.rect, self.d)
-        Node.draw(self)
-
-
-class Button:
-    pass
+    def reset_options(self):
+        Node.__dict__.update(Node.default)
 
 
 class App:
     """Create a single-window app with multiple scenes."""
+    size = (640, 240)
+    caption = 'Pygame'
+    flags = RESIZABLE
+
     scenes = []
     scene = None
 
@@ -176,6 +134,7 @@ class App:
                           K_p: 'self.capture()',
                           K_w: 'self.where()',
                           K_s: 'self.next_scene()',
+                          K_i: 'self.info()'
                           }
 
         App.running = True
@@ -189,6 +148,10 @@ class App:
 
                 if event.type == KEYDOWN:
                     self.do_shortcut(event)
+
+                # if there is no scene, then create a dummy one
+                if App.scene == None:
+                    Scene()
 
                 # Send the event to the scene
                 App.scene.do_event(event)
@@ -207,6 +170,7 @@ class App:
         n = len(App.scenes)
         i = (i+1) % n
         App.scene = App.scenes[i]
+        App.scene.set_scene()
 
     def do_shortcut(self, event):
         """Check if the key/mod combination is part of the shortcuts
@@ -230,12 +194,15 @@ class App:
         filename = path + '/' + name + '.png'
         pygame.image.save(App.screen, filename)
 
+    def info(self):
+        """Print display info."""
+        print('info', '-'*40)
+        # d = pygame.display.get_wm_info() # empty
+        info = pygame.display.Info()
+        # for k, y in d.items():
+        #     print(k, v, sep='\t')
+        print(info)
+
 
 if __name__ == '__main__':
-
-    app = App()
-    s0 = Scene()
-    Scene(bg=Color('pink'), caption='My Scene')
-    App.scenes.append(s0)
-    App.scene = s0
-    app.run()
+    App().run()

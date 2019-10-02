@@ -1,53 +1,45 @@
-"""Draw a blue rectangle.
-Use the arrow keys to move the rectangle. 
-Use the alt+arrow keys to resize the rectangle."""
-
 import pygame
 from pygame.locals import *
-from pygamelib import *
 
-class App():
-    """Define the main game object and its attributes."""
-    def __init__(self):
-        pygame.init()
-        self.bg = YELLOW
-        self.str = 'arrow : move, alt+arrow : resize, key : color, alt+key : bg color'
-        self.font = pygame.font.Font(None, 24)
-        self.screen = pygame.display.set_mode((640, 240))
-        self.rect = pygame.Rect(100, 100, 200, 50)
-        self.col = BLUE
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
-    def run(self):
-        """Run the main event loop."""
-        color = {K_r:RED, K_b:BLUE, K_g:GREEN, K_m:MAGENTA, 
-            K_c:CYAN, K_y:YELLOW, K_k:BLACK, K_w:WHITE}
-        d = {K_UP:(0, -10), K_DOWN:(0, 10), K_LEFT:(-10, 0), K_RIGHT:(10, 0)}
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key in d:
-                        vec = d[event.key]
-                        if event.mod & KMOD_ALT:
-                            self.rect.inflate_ip(vec)
-                        else:
-                            self.rect.move_ip(vec)
-                    elif event.key in color:
-                        if event.mod & KMOD_ALT:
-                            self.bg = color[event.key]
-                        else:
-                            self.col = color[event.key]
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+GRAY = (127, 127, 127)
+WHITE = (255, 255, 255)
 
-            self.draw()
+key_dict = {K_k:BLACK, K_r:RED, K_g:GREEN, K_b:BLUE, 
+    K_y:YELLOW, K_c:CYAN, K_m:MAGENTA, K_w:WHITE}
 
-    def draw(self):
-        self.screen.fill(self.bg)
-        self.text = self.font.render(self.str, True, BLACK)
-        self.screen.blit(self.text, (10, 10))
-        pygame.draw.rect(self.screen, self.col, self.rect)
-        pygame.display.flip()
+pygame.init()
+screen = pygame.display.set_mode((640, 240))
 
-if __name__ == '__main__':
-  App().run()
+running = True
+background = GRAY
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        if event.type == KEYDOWN:
+            if event.key in key_dict:
+                background = key_dict[event.key]
+                
+                caption = 'background color = ' + str(background)
+                pygame.display.set_caption(caption)
+
+    screen.fill(background)
+    pygame.draw.ellipse(screen, RED, (50, 20, 160, 100))
+    pygame.draw.ellipse(screen, GREEN, (100, 60, 160, 100))
+    pygame.draw.ellipse(screen, BLUE, (150, 100, 160, 100))
+    
+    pygame.draw.ellipse(screen, RED, (350, 20, 160, 100), 1)
+    pygame.draw.ellipse(screen, GREEN, (400, 60, 160, 100), 4)
+    pygame.draw.ellipse(screen, BLUE, (450, 100, 160, 100), 8)
+
+    pygame.display.update()
+
+pygame.quit()

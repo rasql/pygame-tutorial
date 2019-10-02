@@ -1,38 +1,45 @@
-"""Draw text, rectangles and a circle."""
-
 import pygame
-from pygamelib import *
+from pygame.locals import *
 
-class App():
-    """Define the main game object and its attributes."""
-    def __init__(self):
-        pygame.init()
-        self.bg = RED
-        self.str = 'Hello world.'
-        self.font = pygame.font.Font(None, 48)
-        self.screen = pygame.display.set_mode((640, 240))
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
-    def run(self):
-        """Run the main event loop."""
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_r:
-                        print('R')
-            self.draw()
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+GRAY = (127, 127, 127)
+WHITE = (255, 255, 255)
 
-    def draw(self):
-        self.screen.fill(self.bg)
-        self.text = self.font.render(self.str, False, BLACK)
-        self.screen.blit(self.text, (20, 20))
-        pygame.draw.rect(self.screen, BLUE, (100, 100, 200, 100))
-        pygame.draw.rect(self.screen, GREEN, (400, 100, 50, 100))
-        pygame.draw.circle(self.screen, YELLOW, (100, 100), 50)
-        
-        pygame.display.flip()
+key_dict = {K_k:BLACK, K_r:RED, K_g:GREEN, K_b:BLUE, 
+    K_y:YELLOW, K_c:CYAN, K_m:MAGENTA, K_w:WHITE}
 
-if __name__ == '__main__':
-  App().run()
+pygame.init()
+screen = pygame.display.set_mode((640, 240))
+
+running = True
+background = GRAY
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+        if event.type == KEYDOWN:
+            if event.key in key_dict:
+                background = key_dict[event.key]
+                
+                caption = 'background color = ' + str(background)
+                pygame.display.set_caption(caption)
+
+    screen.fill(background)
+    pygame.draw.rect(screen, RED, (50, 20, 120, 100))
+    pygame.draw.rect(screen, GREEN, (100, 60, 120, 100))
+    pygame.draw.rect(screen, BLUE, (150, 100, 120, 100))
+
+    pygame.draw.rect(screen, RED, (350, 20, 120, 100), 1)
+    pygame.draw.rect(screen, GREEN, (400, 60, 120, 100), 4)
+    pygame.draw.rect(screen, BLUE, (450, 100, 120, 100), 8)
+
+    pygame.display.update()
+
+pygame.quit()
