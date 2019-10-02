@@ -105,7 +105,7 @@ We define the rectangle by its diagonal start and end point.
 We also need a flag which indicates if the mouse button is down and if we are drawing::
 
     start = (0, 0)
-    end = (0, 0)
+    size = (0, 0)
     drawing = False
 
 When the mouse button is pressed, we set start and end to the current mouse position
@@ -113,7 +113,7 @@ and indciate with the flag that the drawing mode has started::
 
     elif event.type == MOUSEBUTTONDOWN:
         start = event.pos
-        end = event.pos
+        size = 0, 0
         drawing = True
 
 When the mouse button is released, we set the end point
@@ -121,6 +121,7 @@ and indicate with the flag that the drawing mode has ended::
 
     elif event.type == MOUSEBUTTONUP:
         end = event.pos
+        size = end[0] - start[0], end[1] - start[1]
         drawing = False
 
 When the mouse is moving we have first to check if we are in 
@@ -129,28 +130,53 @@ drawing mode. If yes, we set the end position to the current mouse position::
     elif event.type == MOUSEMOTION:
         if drawing:
             end = event.pos
+            size = end[0] - start[0], end[1] - start[1]
 
 Finally we draw the rectangle to the screen. First we fill in
 the background color. Then we calculate the size of the rectangle.
 Finally we draw it, and at the very last we update the screen::
 
     screen.fill(GRAY)
-    size = end[0] - start[0], end[1] - start[1]
     pygame.draw.rect(screen, RED, (start, size), 2)
     pygame.display.update()
 
 .. image:: mouse2.png
 
 
-Draw lines
-----------
+Draw multiple shapes
+--------------------
 
- .. automodule:: draw4
+To draw multiple shapes, we need to place them into a list. Besides variables for 
+``start``, ``end`` and ``drawing`` we add a rectangle list::
 
-.. autoclass:: App
-   :members:
+    start = (0, 0)
+    size = (0, 0)
+    drawing = False
+    rect_list = []
 
-.. image:: draw4.png
+When drawing of an object (rectangle, circle, etc.) is done, as indicated by a
+MOUSEBUTTONUP event, we create a rectangle and append it to the rectangle list::
+
+    elif event.type == MOUSEBUTTONUP:
+        end = event.pos
+        size = end[0]-start[0], end[1]-start[1]
+        rect = pygame.Rect(start, size)
+        rect_list.append(rect)
+        drawing = False
+
+In the drawing code, we first fill the background color, then iterate through the 
+rectagle list to draw the objects (red, thickness=3), and finally we draw the current rectangle which
+is in the process of being drawn (blue, thickness=1)::
+
+    screen.fill(GRAY)
+    
+    for rect in rect_list:
+        pygame.draw.rect(screen, RED, rect, 3)
+    pygame.draw.rect(screen, BLUE, (start, size), 1)
+    
+    pygame.display.update()
+
+.. image:: mouse3.png
 
 
 The App class
