@@ -1,3 +1,5 @@
+"""Print mouse event to the console."""
+
 import pygame
 from pygame.locals import *
 

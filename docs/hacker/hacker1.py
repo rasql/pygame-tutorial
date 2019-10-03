@@ -7,8 +7,5 @@ class Demo(App):
     Text('text')
     Node()
 
-
-
-
 if __name__ == '__main__':
     Demo().run()

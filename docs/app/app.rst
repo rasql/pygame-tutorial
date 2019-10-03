@@ -1,4 +1,4 @@
-Making Apps with Pygame
+Making apps with Pygame
 =======================
 
 In this tutorial we are going to create applications and games with Pygame.
@@ -7,6 +7,7 @@ have multiple windows. If a dialog window is needed, it must be displayed within
 
 Within a game we will need multples scenes (sometimes called rooms, or levels).
 Each scene contains objects with can be :
+
 - text
 - sprites (images)
 - GUI elements (buttons, menus)

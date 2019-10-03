@@ -124,13 +124,12 @@ and indicate with the flag that the drawing mode has ended::
         size = end[0] - start[0], end[1] - start[1]
         drawing = False
 
-When the mouse is moving we have first to check if we are in 
+When the mouse is moving we have also have to check if we are in 
 drawing mode. If yes, we set the end position to the current mouse position::
 
-    elif event.type == MOUSEMOTION:
-        if drawing:
-            end = event.pos
-            size = end[0] - start[0], end[1] - start[1]
+    elif event.type == MOUSEMOTION and drawing:
+        end = event.pos
+        size = end[0] - start[0], end[1] - start[1]
 
 Finally we draw the rectangle to the screen. First we fill in
 the background color. Then we calculate the size of the rectangle.
@@ -169,203 +168,63 @@ rectagle list to draw the objects (red, thickness=3), and finally we draw the cu
 is in the process of being drawn (blue, thickness=1)::
 
     screen.fill(GRAY)
-    
     for rect in rect_list:
         pygame.draw.rect(screen, RED, rect, 3)
     pygame.draw.rect(screen, BLUE, (start, size), 1)
-    
     pygame.display.update()
 
 .. image:: mouse3.png
 
+Here is the complete file:
 
-The App class
---------------
+.. literalinclude:: mouse3.py
 
-The basic structure of a game is always the same.
-We create a ``App`` class from which we can sub-class our applications.
+Draw a pologyon line with the mouse
+-----------------------------------
 
-The constructor method
+To draw a polygon line we need to add the points to a list of points.
+First we define an empty point list and a drawing flag::
 
-* initilizes the module
-* creates a display window, stored as class variable ``App.screen``
-* defines a background color
-* defines an empty ``objects`` list::
+    drawing = False
+    points = []
 
-    class App():
-        """Define the main game object and its attributes."""
-        def __init__(self):
-            pygame.init()
-            App.screen = pygame.display.set_mode((640, 240))
-            self.bg_color = WHITE
-            self.objects = []
+At the MOUSEBUTTONDOWN event we add the current point to the list and 
+set the ``drawing`` flag to True::
 
-The ``run()`` method enters the game loop. Only the QUIT event
-is handled. All other events are sent to the ``on_event`` function::
+    elif event.type == MOUSEBUTTONDOWN:
+        points.append(event.pos)
+        drawing = True
 
-    def run(self):
-        """Run the main event loop.
-        Handle the QUIT event and call ``on_event``. """
-        running = True
-        while running:
-            for event in pygame.event.get():
+At the MOUSEBUTTONUP event we deactivate the ``drawing`` flag::
 
-                if event.type == QUIT:
-                    running = False
-                else:
-                    self.on_event(event)
-            self.draw()
+    elif event.type == MOUSEBUTTONUP:
+        drawing = False
 
-If a game has events and interacts with the user then the ``on_event```
-method must be implemented::
+At the MOUSEMOTION event we move the last point in the polygon list 
+if the drawing flag is set::
 
-    def on_event(self, event):
-        """Implement an event handler."""
-        pass
+    elif event.type == MOUSEMOTION and drawing:
+        points[-1] = event.pos
 
-The ``draw()`` method 
+If there are more than 2 points in the point list we draw a polygon line. 
+Each ``pygame.draw`` function returns a ``Rect`` of the bounding rectangle.
+We display this bounding rectangle in green::
 
-* draws the background
-* draws all the objects in the ``objects`` list
-* updates (flips) the display::
+    screen.fill(GRAY)
+    if len(points)>1:
+        rect = pygame.draw.lines(screen, RED, True, points, 3)
+        pygame.draw.rect(screen, GREEN, rect, 1)
+    pygame.display.update()
 
-    def draw(self):
-        """Draw the game objects to the screen."""
-        self.screen.fill(self.bg_color)
-        for object in self.objects:
-            object.draw()
-        pygame.display.flip()
+Pressing the ESCAPE key will remove the last point in the list::
 
-.. automodule:: draw5
+    elif event.type == KEYDOWN:
+        if event.key == K_ESCAPE:
+            if len(points) > 0:
+                points.pop()
 
-.. autoclass:: LineDemo
-   :members:
+.. image:: mouse4.png
 
-.. image:: draw5.png
+Here is the complete file:
 
-
-Text demo
----------
-
-The basic structure of a game is always the same.
-We create a ``App`` class from which we can sub-class.
-
- .. automodule:: draw6
-
- .. autoclass:: Text
-    :members:
-
-.. autoclass:: ListLabel
-
-.. autoclass:: TextDemo
-   :members:
-
-.. image:: draw6.png
-
-Drawing shapes
---------------
-
-The **pygame.draw** module has methods for drawing shapes to the screen:
-
-* pygame.draw.rect
-* pygame.draw.polygon
-* pygame.draw.circle
-
-The methods only draw the shape once. Using an object-oriented approach we are going 
-to define classes for each shape. There is a common class which we call ``Shape`` 
-
-The class defintion begins with a couple of **class attributes**::
-
-    class Shape:
-        """Base class for geometric shapes having size, color and thickness."""
-        size = [50, 20]  # default size
-        color = BLUE     # default color
-        d = 0            # default thickness
-        v = [0, 0]       # default speed
-
-The constructor methods finds the attribute values for the shape either from the 
-class attribute, or from the argument passed::
-
-        if pos != None:
-            App.pos = list(pos)
-        self.pos = App.pos[:]
-
-        if size != None:
-            Shape.size = list(size)
-        self.size = Shape.size[:]
-        App.pos[1] += Shape.size[1] 
-        
-        if color != None:
-            Shape.color = color
-        self.color = Shape.color
-
-        if d != None:
-            Shape.d = d
-        self.d = Shape.d
-
-        if v != None:
-            Shape.v = list(v)
-        self.v = Shape.v
-
-At the end we define the enclosing rectangle which is used by some of the drawing methods.
-Finally the object is appended to the objects list::
-
-        self.rect = Rect(self.pos, self.size)
-        App.objects.append(self)
-
-The ``draw()`` method needs to be instantiated separately for each object type::
-
-    def draw():
-        pass
-
-Rectangles ane Ellipses
------------------------
-
-This are two derived classes:
-
-.. currentmodule:: pygamelib
-
-.. autoclass:: Rectangle
-    :members:
-
-.. autoclass:: Ellipse
-    :members:
- 
-.. autoclass:: Rectangle
-    :members:
- 
-.. image:: draw7.png
-
-
-Polygons, Arcs and Lines
-------------------------
-
-This are some more derived classes:
-
-.. autoclass:: Polygon
-    :members:
-
-.. autoclass:: Arc
-    :members:
- 
-.. autoclass:: Line
-    :members:
- 
-.. image:: draw8.png
-
-
-Randomly moving shapes
-----------------------
-
-In order to move the shapes, we add an ``update()`` method to ``Shape``::
-
-    def update(self):
-        self.pos[0] += self.v[0]
-        self.pos[1] += self.v[1]
-        if not 0 < self.pos[0] < App.screen.get_width()-self.size[0]:
-            self.v[0] *= -1
-        if not 0 < self.pos[1] < App.screen.get_height()-self.size[1]:
-            self.v[1] *= -1
-        self.rect.topleft = self.pos
-
-.. image:: draw9.png
+.. literalinclude:: mouse4.py

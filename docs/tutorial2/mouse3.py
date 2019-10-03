@@ -1,3 +1,5 @@
+"""Place multiple rectangles with the mouse."""
+
 import pygame
 from pygame.locals import *
 
@@ -32,17 +34,14 @@ while running:
             rect_list.append(rect)
             drawing = False
 
-        elif event.type == MOUSEMOTION:
-            if drawing:
-                end = event.pos
-                size = end[0]-start[0], end[1]-start[1]
+        elif event.type == MOUSEMOTION and drawing:
+            end = event.pos
+            size = end[0]-start[0], end[1]-start[1]
 
     screen.fill(GRAY)
-    
     for rect in rect_list:
         pygame.draw.rect(screen, RED, rect, 3)
     pygame.draw.rect(screen, BLUE, (start, size), 1)
-    
     pygame.display.update()
 
 pygame.quit()

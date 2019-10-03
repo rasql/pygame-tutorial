@@ -1,17 +1,17 @@
-"""Place a rectangle with the mouse."""
+"""Place a polygone line with the clicks of the mouse."""
 
 import pygame
 from pygame.locals import *
 
 RED = (255, 0, 0)
-GRAY = (127, 127, 127)
+GREEN = (0, 255, 0)
+GRAY = (150, 150, 150)
 
 pygame.init()
 screen = pygame.display.set_mode((640, 240))
 
-start = (0, 0)
-size = (0, 0)
 drawing = False
+points = []
 running = True
 
 while running:
@@ -19,22 +19,25 @@ while running:
         if event.type == QUIT:
             running = False
 
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                if len(points) > 0:
+                    points.pop()
+
         elif event.type == MOUSEBUTTONDOWN:
-            start = event.pos
-            size = 0, 0
+            points.append(event.pos)
             drawing = True
-            
+
         elif event.type == MOUSEBUTTONUP:
-            end = event.pos
-            size = end[0] - start[0], end[1] - start[1]
             drawing = False
 
         elif event.type == MOUSEMOTION and drawing:
-            end = event.pos
-            size = end[0] - start[0], end[1] - start[1]
-
+            points[-1] = event.pos
+    
     screen.fill(GRAY)
-    pygame.draw.rect(screen, RED, (start, size), 2)
+    if len(points)>1:
+        rect = pygame.draw.lines(screen, RED, True, points, 3)
+        pygame.draw.rect(screen, GREEN, rect, 1)
     pygame.display.update()
 
 pygame.quit()
