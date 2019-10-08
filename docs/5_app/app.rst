@@ -1,11 +1,11 @@
 Making apps with Pygame
 =======================
 
-In this tutorial we are going to create applications and games with Pygame.
-Pygame only allows to create one single window. A game or application cannot
-have multiple windows. If a dialog window is needed, it must be displayed within the main window.
+In this section we are going to create applications and games with Pygame.
+Pygame only allows to create one single window. Different from other applications one based on 
+pygame cannot have multiple windows. If for example dialog window is needed, it must be displayed within the main window.
 
-Within a game we will need multples scenes (sometimes called rooms, or levels).
+Within an application we provide multples scenes (environments, rooms, or levels).
 Each scene contains objects with can be :
 
 - text
@@ -130,7 +130,7 @@ The string representation of the scene is *Scene* followed by its ID number::
     def __str__(self):
         return 'Scene {}'.format(self.id)
 
-.. image:: app1.*
+.. image:: app5.*
 
 
 Shortcut keys

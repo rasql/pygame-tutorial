@@ -41,8 +41,8 @@ Done
 * mark active object with blue frame
 * use arrow keys to move between active cell (**board**)
 
-To do
-=====
+More
+----
 
 * cmd-click : select an item
 * alt-click : move selection

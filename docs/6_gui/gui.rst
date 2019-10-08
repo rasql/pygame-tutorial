@@ -1,21 +1,8 @@
-Work with text
-==============
-
-.. automodule:: text1
-   :members:
-
-.. image:: text1.png
-
-.. automodule:: text2
-   :members:
-
-.. image:: text2.png
-
-GUI
----
+Create a graphical user interface (GUI)
+=======================================
 
 Shortcut keys
-^^^^^^^^^^^^^
+-------------
 
 The simplest way to decode shortcut keys is to use a dictionary. 
 This is fast, short and easy to extend. We define the following 
@@ -55,7 +42,7 @@ execute look if the tuple *(k, m)* is in the dictionary::
 
 
 Buttons
-^^^^^^^
+-------
 
 .. automodule:: gui2
 

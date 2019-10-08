@@ -15,10 +15,12 @@ approach to making apps.
    :maxdepth: 2
    :caption: Contents:
 
-   tutorial1/intro
-   tutorial2/draw
-   tutorial3/tutorial3
-   app/app
+   1_intro/intro
+   2_draw/draw
+   3_image/image
+   4_text/text
+   5_app/app
+   6_gui/gui
    tutorial4/board
    sandbox
    todo
