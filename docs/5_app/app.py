@@ -5,12 +5,12 @@ import sys
 import inspect
 import numpy as np
 
-
 class Scene:
     """Create a new scene and initialize the node options."""
     id = 0
     options = {'bg': Color('gray')}
 
+    # initial options for nodes in a new scene
     node_options = {'pos': (20, 20),
                     'size': (100, 40),
                     'dir': (0, 1),
@@ -25,6 +25,7 @@ class Scene:
         # Append the new scene and make it the current scene
         App.scenes.append(self)
         App.scene = self
+        # Reset Node options
         Node.options = Scene.node_options.copy()
 
         # Set the instance id and increment the class id
@@ -98,6 +99,7 @@ class Text(Node):
         self.fontsize = 72
         self.fontcolor = Color('black')
         self.render()
+        Node.options['size'] = self.size
 
         # Append the node to the current window
         App.scene.nodes.append(self)
@@ -109,7 +111,6 @@ class Text(Node):
         self.rect = self.text.get_rect()
         self.rect.topleft = self.pos
         self.size = self.rect.size
-        Node.options['size'] = self.size
 
     def draw(self):
         """Draw the text surface on the screen."""

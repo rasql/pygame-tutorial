@@ -1,28 +1,30 @@
 Making apps with Pygame
 =======================
 
-In this section we are going to create applications and games with Pygame.
-Pygame only allows to create one single window. Different from other applications one based on 
-pygame cannot have multiple windows. If for example dialog window is needed, it must be displayed within the main window.
+In this section we are going to create applications and games with Pygame. From here on we will be 
+using an object-oriented programming (OOP) approach.
+
+Pygame only allows to create one single window. Different from other applications,
+those based on Pygame cannot have multiple windows. If for example dialog window is needed, it must be displayed within the main window.
 
 Within an application we provide multples scenes (environments, rooms, or levels).
-Each scene contains objects with can be :
+Each scene contains different objects such as:
 
 - text
 - sprites (images)
 - GUI elements (buttons, menus)
 - shapes (rectangles, circles)
 
-The App class
+Create the App class
 -------------
 
 The basis for a game or application is the ``App`` class. The first thing to do is to import 
-the ``Pygame`` module, as well as a series of useful constants::
+the ``pygame`` module, as well as a series of useful constants::
 
     import pygame
     from pygame.locals import *
 
-Then we create define the App class which initializes pygame and opens a the app 
+Then we create define the App class which initializes Pygame and opens a the app 
 window::
 
     class App:
@@ -53,41 +55,53 @@ imported as a module::
         App().run()
 
 
-Add text
---------
+Add the Text class
+------------------
 
 Now we add some text to the screen. We create a Text class from which we can 
 instantiate text objects::
 
     class Text:
-        """Create a text object which knows how to draw itself."""
+        """Create a text object."""
 
         def __init__(self, text, pos, **options):
-            """Instantiate and render the text object."""
-            self.str = text
+            self.text = text
             self.pos = pos
+
+            self.fontname = None
             self.fontsize = 72
             self.fontcolor = Color('black')
+            self.set_font()
             self.render()
+
+The ``Font`` object needs to be created initially and everytime
+the font name or the font size changes::
+
+    def set_font(self):
+        """Set the Font object from name and size."""
+        self.font = pygame.font.Font(self.fontname, self.fontsize)
 
 The text needs to be rendered into a surface object, an image. This needs to be
 done only once, or whenever the text changes::
 
     def render(self):
-        """Render the string and create a surface object."""
-        self.font = pygame.font.Font(None, self.fontsize)
-        self.text = self.font.render(self.str, True, self.fontcolor)
-        self.rect = self.text.get_rect()
+        """Render the text into an image."""
+        self.img = self.font.render(self.text, True, self.fontcolor)
+        self.rect = self.img.get_rect()
+        self.rect.topleft = self.pos
 
 Drawing the text means blitting it to the application screen::
 
     def draw(self):
-        """Draw the text surface on the screen."""
-        App.screen.blit(self.text, self.pos)
+        """Draw the text image to the screen."""
+        App.screen.blit(self.img, self.rect)
 
+This is the result:
 
-Create scenes
--------------
+.. image:: app2.png
+
+Add the Scene class
+-------------------
 
 Most applications or games have different scenes, such as an introduction screen, 
 an intro, and different game levels. So we are going to define the Scene class::
@@ -105,7 +119,7 @@ and make this scene the current scene::
         App.scenes.append(self)
         App.scene = self
 
-The we set a scene id, which is kept as class attribute of the Scene class.
+Then we set a scene id, which is kept as class attribute of the Scene class.
 Then we set the nodes list to the empty list and set the background color::
 
         # Set the instance id and increment the class id

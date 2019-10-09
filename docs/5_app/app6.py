@@ -1,4 +1,4 @@
-from pg_app import *
+from app import *
 
 class Demo(App):
     def __init__(self):
