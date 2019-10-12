@@ -16,7 +16,7 @@ Each scene contains different objects such as:
 - shapes (rectangles, circles)
 
 Create the App class
--------------
+--------------------
 
 The basis for a game or application is the ``App`` class. The first thing to do is to import 
 the ``pygame`` module, as well as a series of useful constants::
@@ -78,7 +78,7 @@ The ``Font`` object needs to be created initially and everytime
 the font name or the font size changes::
 
     def set_font(self):
-        """Set the Font object from name and size."""
+        """Set the font from its name and size."""
         self.font = pygame.font.Font(self.fontname, self.fontsize)
 
 The text needs to be rendered into a surface object, an image. This needs to be
@@ -99,6 +99,10 @@ Drawing the text means blitting it to the application screen::
 This is the result:
 
 .. image:: app2.png
+
+Here is the complete code:
+
+.. literalinclude:: app2.py
 
 Add the Scene class
 -------------------
@@ -144,7 +148,24 @@ The string representation of the scene is *Scene* followed by its ID number::
     def __str__(self):
         return 'Scene {}'.format(self.id)
 
-.. image:: app5.*
+
+This is an image of scene 0 with two text objects and a default gray background color.
+The second text object has been selected.
+
+.. image:: app3a.png
+
+This is an image of scene 1 with two text objects, the first one being selected 
+and a yellow background color.
+
+.. image:: app3b.png
+
+This is an image of scene 2 with two text objects, none being selected, and a green background color.
+
+.. image:: app3c.png
+
+Here is the complete code:
+
+.. literalinclude:: app3.py
 
 
 Shortcut keys
@@ -189,6 +210,131 @@ keys and modifier keys::
             exec(self.shortcuts[k, m])
 
 
+Automatic node placement
+------------------------
 
+Nodes are containers for GUI elements. It is convenient
+if they can be placed automatically inside a scene.
+
+* ``pos`` the current position
+* ``size`` the current size
+* ``dir`` the current direction: vertical (1, 0), horizontal (0, 1), diagonal (1, 1)
+* ``gap`` the spacing
+* ``color`` the color
+* ``d`` the line thickness
+
+The default placement direction is vertical. 
+Nodes placed in a scene stack up vertically. 
+At any time the node position, node size, 
+node color or node thickness can be changed::
+
+    Scene(caption='Nodes - vertical placement')
+    Node()
+    Node()
+    Node()
+
+    Node(pos=(200, 20), color=Color('blue'), d=3)
+    Node()
+    Node()
+    
+.. image:: node1a.png
+
+Here we change the node placement direction to horizontal, dir=(0, 1).
+At any time we can change the node position or node color.
+We can place the inital node position at (0, 0) and change the gap to (0, 0)::
+
+    Scene(caption='Nodes - horizontal placement')
+    Node(dir=(1, 0), pos=(0, 0), gap=(0, 0))
+    Node()
+    Node()
+
+    Node(pos=(0, 100), color=Color('green'))
+    Node()
+    Node()
+
+.. image:: node1b.png
+
+The placement can also be diagonal by chosing the direction vector
+dir = (1, 1)::
+
+    Scene(caption='Nodes - diagonale placement')
+    Node(dir=(1, 1), gap=(0, 0))
+    Node()
+    Node()
+
+.. image:: node1c.png
+
+Here is the complete code:
+
+.. literalinclude:: node1.py
+
+Text attributes
+---------------
+
+We store all pygame text attributes as class variables::
+
+    class Text(Node):
+        """Create a text object which knows how to draw itself."""
+
+        fontname = None
+        fontsize = 36
+        fontcolor = Color('black')
+        background = None
+        italic = False
+        bold = False
+        underline = False
+
+After initializing the Node, we update the instance variables
+from the Text class variables::
+
+    super().__init__(**options)
+    self.__dict__.update(Text.options)
+
+Most of the attributes are set at font creation::
+
+   def set_font(self):
+        """Set the font and its properties."""
+        self.font = pygame.font.Font(self.fontname, self.fontsize)
+        self.font.set_bold(self.bold)
+        self.font.set_italic(self.italic)
+        self.font.set_underline(self.underline)
+
+The colors are set when rendering the text::
+
+    def render(self):
+        """Render the text into an image."""
+        self.img = self.font.render(self.text, True, self.fontcolor, self.background)
+        self.rect.size = self.img.get_size()
+
+Here is a code example:
+
+.. literalinclude:: text1.py
+
+Which produces the following result.
+
+.. image:: text1.png
+
+
+
+
+
+We are going to create a Node class with the following properties:
+
+* Node creation with the mouse (CMD)
+* Node movement
+* Node size change
+* Multiple selection
+* 
+
+
+
+
+Class and methods
+-----------------
+
+.. automodule:: app
+
+.. autoclass:: App
+   :members:
 
 

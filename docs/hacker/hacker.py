@@ -25,7 +25,6 @@ class App:
         self.rect = Rect(0, 0, 800, 600)
         self.background_color = GRAY
         self.title = 'Hacker Desktop Environment'
-        self.screen = pygame.display.set_mode()
         self.children = []
         App.screen = pygame.display.set_mode(self.rect.size)
         pygame.display.set_caption(self.title)
@@ -259,7 +258,6 @@ class Terminal(Window):
         for line in lines.splitlines():
             Text(self, line, pos=(x, y), movable=False, outlined=False, fontcolor=WHITE)
             y += 30
-
 
 if __name__ == '__main__':
     App().run()

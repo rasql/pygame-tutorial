@@ -1,8 +1,6 @@
 import pygame
 from pygame.locals import *
 
-GRAY = (200, 200, 200)
-
 class Text:
     """Create a text object."""
 
