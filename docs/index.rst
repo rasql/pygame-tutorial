@@ -23,8 +23,7 @@ approach to making apps.
    6_gui/gui
    7_sound/sound
    tutorial4/board
-   sandbox
-   todo
+   sphinx
 
 Indices and tables
 ==================

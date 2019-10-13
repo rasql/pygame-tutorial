@@ -1,5 +1,45 @@
-Sandbox
-=======
+About Sphinx
+============
+
+Sphinx is a tool for making documentation. It was originally created for the
+Python documentation (https://docs.python.org/3/), but is now used for many other software projects.
+
+Sphinx uses reStructuredText as its markup language.
+
+It can produce HTML, LaTeX, ePub and PDF documents.
+
+Getting started
+---------------
+
+After installation, you can get started quickly with the tool **sphinx-quickstart**. Just enter::
+
+   $ sphinx-quickstart
+
+Answer each question. Be sure to say *yes* to the **autodoc** extension.
+This creates a directory several documents:
+
+- *conf.py* file, the default configuration file
+- index.rst file, the master document
+
+The *conf.py* is where you can configure all aspects of Sphinx.
+The *index.rst* is the 
+
+The *toctree* directive determines the content of the document. For this document it looks 
+like this::
+
+   .. toctree::
+      :maxdepth: 2
+      :caption: Contents:
+
+      1_intro/intro
+      2_draw/draw
+      3_image/image
+      4_text/text
+      5_app/app
+      6_gui/gui
+      7_sound/sound
+      tutorial4/board
+      sphinx
 
 .. default-domain:: py
 

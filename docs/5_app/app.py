@@ -15,7 +15,7 @@ class App:
     def __init__(self):
         """Initialize pygame and the application."""
         pygame.init()
-        self.flags = RESIZABLE
+        self.flags = 0
         self.rect = Rect(0, 0, 640, 240)
         App.screen = pygame.display.set_mode(self.rect.size, self.flags)
 
