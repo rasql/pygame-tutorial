@@ -4,27 +4,30 @@ About Sphinx
 Sphinx is a tool for making documentation. It was originally created for the
 Python documentation (https://docs.python.org/3/), but is now used for many other software projects.
 
-Sphinx uses reStructuredText as its markup language.
+Sphinx uses :term:`reStructuredText` as its markup language.
 
 It can produce HTML, LaTeX, ePub and PDF documents.
 
 Getting started
 ---------------
 
-After installation, you can get started quickly with the tool **sphinx-quickstart**. Just enter::
+After installation, you can get started quickly with the tool 
+:program:`sphinx-quickstart`. Just enter:
+
+.. code-block:: shell
 
    $ sphinx-quickstart
 
 Answer each question. Be sure to say *yes* to the **autodoc** extension.
 This creates a directory several documents:
 
-- *conf.py* file, the default configuration file
-- index.rst file, the master document
+- :file:`conf.py` file, the default configuration file
+- :file:`index.rst` file, the master document
 
-The *conf.py* is where you can configure all aspects of Sphinx.
-The *index.rst* is the 
+The :file:`conf.py` is where you can configure all aspects of Sphinx.
+The :file:`index.rst` is the 
 
-The *toctree* directive determines the content of the document. For this document it looks 
+The ``toctree`` directive determines the content of the document. For this document it looks 
 like this::
 
    .. toctree::
@@ -41,11 +44,19 @@ like this::
       tutorial4/board
       sphinx
 
-.. default-domain:: py
+To build the HTML pages just run::
+
+   make html
+
+To make the PDF document just run::
+
+   make pdf
+
+
 
 Domains
 -------
-Domains have been introduced into sphinx to make it available for other languages than just Python.
+Domains have been introduced into Sphinx to make it available for other languages than just Python.
 Domains can provide custom indeces (like the Python module). 
 
 .. py:function:: spam(eggs)
@@ -75,6 +86,14 @@ Cross-referencing syntax
 
 Directives
 ----------
+
+This code::
+
+   .. function:: Timer.repeat(repeat=3, number=1000)
+
+      Descripe the function.
+
+products this result::
 
 .. function:: Timer.repeat(repeat=3, number=1000)
 

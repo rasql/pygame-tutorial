@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
-import os
+import copy
+import os, copy
 import sys
 import inspect
 import numpy as np
@@ -11,6 +12,7 @@ class App:
     scene = None
     screen = None
     running = True
+    selection = []
 
     def __init__(self):
         """Initialize pygame and the application."""
@@ -33,7 +35,6 @@ class App:
                           (K_n, KMOD_NONE): 'Node(pos=pygame.mouse.get_pos())',
                           (K_r, KMOD_NONE): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
                           (K_t, KMOD_NONE): 'Text("Text", pos=pygame.mouse.get_pos())',
-                          (K_o, KMOD_NONE): 'self.scene.print_nodes()',
 
                           (K_x, KMOD_LMETA): 'print("cmd+X")',
                           (K_x, KMOD_LALT): 'print("alt+X")',
@@ -41,6 +42,11 @@ class App:
                           (K_x, KMOD_LMETA + KMOD_LSHIFT): 'print("cmd+shift+X")',
                           (K_x, KMOD_LMETA + KMOD_LALT): 'print("cmd+alt+X")',
                           (K_x, KMOD_LMETA + KMOD_LALT + KMOD_LSHIFT): 'print("cmd+alt+shift+X")',
+                         
+                          (K_x, KMOD_LMETA): 'App.scene.cut()',
+                          (K_c, KMOD_LMETA): 'App.scene.copy()',
+                          (K_v, KMOD_LMETA): 'App.scene.paste()',
+                         
                           }
 
     def run(self):
@@ -183,10 +189,6 @@ class Scene:
         
         for node in self.selection:
             node.do_event(event)
-        
-    def print_nodes(self):
-        for node in self.nodes:
-            print(node)
 
     def select_next(self, d=1):
         """Move to the next object in the node list."""
@@ -195,11 +197,34 @@ class Scene:
             i = self.nodes.index(node)
             n = len(self.nodes)
             i = (i+d) % n
-            print(i, n)
             self.selection = [self.nodes[i]]
             for node in self.nodes:
                 node.selected = False
             self.nodes[i].selected = True
+
+    def cut(self):
+        """Cuts the selected objects and places them in App.selection."""
+        print('cut')
+        App.selection = self.selection
+        for obj in self.selection:
+            print('remove', obj)
+            self.nodes.remove(obj)
+        self.selection = []
+
+    def copy(self):
+        """Copies the selected objects and places them in App.selection."""
+        print('copy')
+        App.selection = self.selection
+
+    def paste(self):
+        """Pastes the objects from App.selection."""
+        print('paste')
+        for obj in App.selection:
+            obj2 = eval(type(obj).__name__+'()')
+            obj2.rect = obj.rect.copy()
+            obj2.rect.topleft = pygame.mouse.get_pos()
+            obj2.__dict__.update(obj.__dict__)
+            self.nodes.append(obj)
 
     def __str__(self):
         return 'Scene {}'.format(self.id)
@@ -303,7 +328,7 @@ class Text(Node):
     bold = False
     underline = False
 
-    def __init__(self, text, cmd='', **options):
+    def __init__(self, text='Text', cmd='', **options):
         """Instantiate and render the text object."""
         super().__init__(**options)
         self.__dict__.update(Text.options)
@@ -335,7 +360,7 @@ class Text(Node):
                 exec(self.cmd)
             elif event.key == K_BACKSPACE:
                 self.text = self.text[:-1]
-            else:
+            elif not (event.mod & KMOD_META + KMOD_CTRL):
                 self.text += event.unicode
             self.render()
 
@@ -360,7 +385,6 @@ class TextList(Node):
             text = self.font.render(items[i], True, Color('black'))
             w, h = text.get_size()
             self.img.blit(text, ((100-w)/2, i*h))
-            print(i)
 
     def draw(self):
         App.screen.blit(self.img, self.rect)
@@ -401,7 +425,7 @@ class Button(Text):
     border = 2
     border_color = Color('magenta')
 
-    def __init__(self, text, cmd='',  **options):
+    def __init__(self, text='Button', cmd='',  **options):
         super().__init__(text, **options)
         self.__dict__.update(Button.options)
 
@@ -423,7 +447,6 @@ class Button(Text):
         App.screen.blit(self.img, self.text_rect)
         Node.draw(self)
 
-
 if __name__ == '__main__':
     app = App()
     Scene(caption='Scene 0')
@@ -437,5 +460,5 @@ if __name__ == '__main__':
     Button('Button 1', cmd='print(123)')
     TextList(['Amsterdam', 'Berlin', 'Calcutta'])
     TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
-    
+        
     app.run()
