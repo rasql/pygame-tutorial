@@ -1,4 +1,4 @@
-"""Display text in different size, color and font."""
+"""Display text with different size, color and font."""
 from app import *
 
 class Demo(App):

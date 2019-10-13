@@ -21,6 +21,7 @@ approach to making apps.
    4_text/text
    5_app/app
    6_gui/gui
+   7_sound/sound
    tutorial4/board
    sandbox
    todo

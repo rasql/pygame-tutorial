@@ -104,6 +104,100 @@ Here is the complete code:
 
 .. literalinclude:: app2.py
 
+
+Shortcut keys
+-------------
+
+Key presses (called shortcuts) can be used to interact with the application and run
+commands. We can add the following code inside the event loop to
+intercept the S key and print a message::
+
+    if event.type == KEYDOWN:
+        if event.key == K_s:
+            print('Key press S')
+
+If the application has many shortcuts, the keys alone may not be enoufht and modifier keys (cmd, ctrl, alt, shift) can be used
+to increase the number of combinations.
+The easiest way to represent these shortcuts is under the form of a dictionary,
+where the key/mod tuples are associated with a command strings. 
+The dictionary has this shape::
+
+    self.shortcuts = {
+        (K_x, KMOD_LMETA): 'print("cmd+X")',
+        (K_x, KMOD_LALT): 'print("alt+X")',
+        (K_x, KMOD_LCTRL): 'print("ctrl+X")',
+        (K_x, KMOD_LMETA + KMOD_LSHIFT): 'print("cmd+shift+X")',
+        (K_x, KMOD_LMETA + KMOD_LALT): 'print("cmd+alt+X")',
+        (K_x, KMOD_LMETA + KMOD_LALT + KMOD_LSHIFT): 'print("cmd+alt+shift+X")',
+    }
+
+Inside the event loop we detect keydown events and call the key handler::
+
+    if event.type == KEYDOWN:
+        self.do_shortcut(event)
+
+The ``do_shortcut()`` method looks up the shortcut and executes the command string::
+
+    def do_shortcut(self, event):
+        """Find the the key/mod combination in the dictionary and execute the cmd."""
+        k = event.key
+        m = event.mod
+        if (k, m) in self.shortcuts:
+            exec(self.shortcuts[k, m])
+
+This is the result on the console when pressing different key+modifier combinations::
+
+    cmd+X
+    alt+X
+    ctrl+X
+    cmd+shift+X
+    cmd+alt+X
+    cmd+alt+shift+X
+
+
+Fullscreen, resizable and noframe mode
+--------------------------------------
+
+Pygame allows a window to be displayed in 3 different modes:
+
+* fullscreen mode
+* resizable (a resize edge is displayed)
+* noframe mode (without a window title bar)
+
+Inside the ``App`` class ``__init__()`` method we first define the screen size and the 
+display mode flags, and then create the ``screen`` surface::
+
+    self.flags = RESIZABLE
+    self.rect = Rect(0, 0, 640, 240)
+    App.screen = pygame.display.set_mode(self.rect.size, self.flags)
+
+In order to toggle (turn on and off) the three display modes we 
+add these entries to the ``shortcuts`` dictionary::
+
+    (K_f, KMOD_LMETA): 'self.toggle_fullscreen()',
+    (K_r, KMOD_LMETA): 'self.toggle_resizable()',
+    (K_g, KMOD_LMETA): 'self.toggle_frame()',
+
+Inside the ``App`` class we define three methods to toggle the corresponding mode flag,
+by using the bit-wise XOR operator (``^=``)::
+
+    def toggle_fullscreen(self):
+        """Toggle between full screen and windowed screen."""
+        self.flags ^= FULLSCREEN
+        pygame.display.set_mode((0, 0), self.flags)
+
+    def toggle_resizable(self):
+        """Toggle between resizable and fixed-size window."""
+        self.flags ^= RESIZABLE
+        pygame.display.set_mode(self.rect.size, self.flags)
+
+    def toggle_frame(self):
+        """Toggle between frame and noframe window."""
+        self.flags ^= NOFRAME
+        pygame.display.set_mode(self.rect.size, self.flags)
+
+
+
 Add the Scene class
 -------------------
 
@@ -148,7 +242,6 @@ The string representation of the scene is *Scene* followed by its ID number::
     def __str__(self):
         return 'Scene {}'.format(self.id)
 
-
 This is an image of scene 0 with two text objects and a default gray background color.
 The second text object has been selected.
 
@@ -168,46 +261,38 @@ Here is the complete code:
 .. literalinclude:: app3.py
 
 
-Shortcut keys
--------------
+Scenes with background images
+-----------------------------
 
-Key presses can be used to switch scenes, or to interact with the game,
-or to run commands. We add the following code inside the event loop to
-intercept the S key::
+We can add a background image to a scene::
 
-    if event.type == KEYDOWN:
-        if event.key == K_s:
-            print('Key press S')
+    self.file = Scene.options['file']
 
-The easiest way to represent shortcuts is under the form of a dictionary,
-where the keys are associated with command strings. We add the following 
-code inside the App init method::
+    if self.file != '':
+        self.img = pygame.image.load(self.file)
+        size = App.screen.get_size()
+        self.img = pygame.transform.smoothscale(self.img, size)
+    self.enter()
 
-    self.shortcuts = {K_ESCAPE: 'App.running=False',
-                        K_p: 'self.capture()',
-                        K_w: 'self.where()',
-                        K_s: 'self.next_scene()',
-                        }
+This is an image of scene 0 with a forest background image and a 
+white Text object.
 
-Inside the event loop we detect keydown events and call the key handler::
+.. image:: app4a.png
 
-    if event.type == KEYDOWN:
-        self.do_shortcuts(event)
+This is an image of scene 1 with a lake background image and a
+black Text object.
 
-The following method handles the shortcuts for simple keys or combinations of 
-keys and modifier keys:: 
+.. image:: app4b.png
 
-    def do_shortcuts(self, event):
-        """Check if the key/mod combination is part of the shortcuts
-        dictionary and execute it. More shortcuts can be added 
-        to the ``self.shortcuts`` dictionary by the program."""
-        k = event.key
-        m = event.mod
+This is an image of scene 2 with a sunset background image and a
+white Text object.
 
-        if k in self.shortcuts and m == 0 :
-            exec(self.shortcuts[k])
-        elif (k, m) in self.shortcuts:
-            exec(self.shortcuts[k, m])
+.. image:: app4c.png
+
+Here is the complete code:
+
+.. literalinclude:: app4.py
+
 
 
 Automatic node placement
@@ -315,18 +400,33 @@ Which produces the following result.
 .. image:: text1.png
 
 
+Making sounds
+-------------
 
+The ``pygame.mixer`` module allows to play compressed OGG files or uncompressed WAV files.
 
+This checks the initialization parameters and prints the number of channels available.
+It opens a sound object and prays it::
 
-We are going to create a Node class with the following properties:
+    print('init =', pygame.mixer.get_init())
+    print('channels =', pygame.mixer.get_num_channels())
+    App.snd = pygame.mixer.Sound('5_app/rpgaudio.ogg')
+    App.snd.play()
+    print('length =', App.snd.get_length())
 
-* Node creation with the mouse (CMD)
-* Node movement
-* Node size change
-* Multiple selection
-* 
+Writes this to the console::
 
+    init = (22050, -16, 2)
+    channels = 8
+    length = 28.437868118286133
 
+Here is a code example:
+
+.. literalinclude:: sound1.py
+
+Which produces the following result.
+
+.. image:: sound1.png
 
 
 Class and methods

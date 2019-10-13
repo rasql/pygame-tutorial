@@ -5,6 +5,103 @@ import sys
 import inspect
 import numpy as np
 
+class App:
+    """Create a single-window app with multiple scenes hierarchial objects."""
+    scenes = []
+    scene = None
+    screen = None
+    running = True
+
+    def __init__(self):
+        """Initialize pygame and the application."""
+        pygame.init()
+        self.flags = RESIZABLE
+        self.rect = Rect(0, 0, 640, 240)
+        App.screen = pygame.display.set_mode(self.rect.size, self.flags)
+
+        self.shortcuts = {(K_ESCAPE, KMOD_NONE): 'App.running=False',
+                          (K_q, KMOD_LMETA): 'App.running=False',
+                          (K_f, KMOD_LMETA): 'self.toggle_fullscreen()',
+                          (K_r, KMOD_LMETA): 'self.toggle_resizable()',
+                          (K_g, KMOD_LMETA): 'self.toggle_frame()',
+                          
+                          (K_h, KMOD_LMETA): 'pygame.display.iconify()',
+                          (K_p, KMOD_LMETA): 'self.capture()',
+                          (K_s, KMOD_LMETA): 'self.next_scene()',
+
+                          (K_e, KMOD_NONE): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
+                          (K_n, KMOD_NONE): 'Node(pos=pygame.mouse.get_pos())',
+                          (K_r, KMOD_NONE): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
+                          (K_t, KMOD_NONE): 'Text("Text", pos=pygame.mouse.get_pos())',
+                          (K_o, KMOD_NONE): 'self.scene.print_nodes()',
+
+                          (K_x, KMOD_LMETA): 'print("cmd+X")',
+                          (K_x, KMOD_LALT): 'print("alt+X")',
+                          (K_x, KMOD_LCTRL): 'print("ctrl+X")',
+                          (K_x, KMOD_LMETA + KMOD_LSHIFT): 'print("cmd+shift+X")',
+                          (K_x, KMOD_LMETA + KMOD_LALT): 'print("cmd+alt+X")',
+                          (K_x, KMOD_LMETA + KMOD_LALT + KMOD_LSHIFT): 'print("cmd+alt+shift+X")',
+                          }
+
+    def run(self):
+        """Run the main event loop."""
+        while App.running:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    App.running = False
+
+                elif event.type == KEYDOWN:
+                    self.do_shortcut(event)
+
+                # Send the event to the scene
+                App.scene.do_event(event)
+                App.scene.update()
+
+            App.scene.draw()
+
+        pygame.quit()
+
+    def next_scene(self):
+        """Switch to the next scene."""
+        i = App.scenes.index(App.scene)
+        n = len(App.scenes)
+        i = (i+1) % n
+        App.scene = App.scenes[i]
+        App.scene.enter()
+
+    def do_shortcut(self, event):
+        """Find the key/mod combination in the dictionary and execute the cmd."""
+        k = event.key
+        m = event.mod
+        if (k, m) in self.shortcuts:
+            exec(self.shortcuts[k, m])
+
+    def capture(self):
+        """Save a screen capture to the directory of the 
+        calling class, under the class name in PNG format."""
+        name = type(self).__name__
+        module = sys.modules['__main__']
+        path, name = os.path.split(module.__file__)
+        name, ext = os.path.splitext(name)
+        filename = path + '/' + name + '.png'
+        pygame.image.save(App.screen, filename)
+
+    def toggle_fullscreen(self):
+        """Toggle between full screen and windowed screen."""
+        self.flags ^= FULLSCREEN
+        pygame.display.set_mode((0, 0), self.flags)
+
+    def toggle_resizable(self):
+        """Toggle between resizable and fixed-size window."""
+        self.flags ^= RESIZABLE
+        pygame.display.set_mode(self.rect.size, self.flags)
+
+    def toggle_frame(self):
+        """Toggle between frame and noframe window."""
+        self.flags ^= NOFRAME
+        pygame.display.set_mode(self.rect.size, self.flags)
+
+
 class Scene:
     """Create a new scene and initialize the node options."""
     id = 0
@@ -16,7 +113,8 @@ class Scene:
         # Append the new scene and make it the current scene
         App.scenes.append(self)
         App.scene = self
-        # Reset Node options
+
+        # Reset Node options to default
         Node.options = Node.options0.copy()
 
         # Set the instance id and increment the class id
@@ -24,26 +122,34 @@ class Scene:
         Scene.id += 1
         self.nodes = []
         self.selection = []
-        #self.key = ''
 
+        # Update class options from current **options argument
         Scene.options.update(options)
-        self.bg = Scene.options['bg']
-        self.caption = Scene.options['caption']
-        self.file = Scene.options['file']
 
+        # Add/update instance options from class options
+        self.__dict__.update(Scene.options)
+
+        self.rect = App.screen.get_rect()
         if self.file != '':
-            self.img = pygame.image.load(self.file)
-            self.img = pygame.transform.smoothscale(self.img, (640, 240))
+            self.img = pygame.image.load(self.file)    
+            self.img = pygame.transform.smoothscale(self.img, self.rect.size)
+        else:
+            self.img = pygame.Surface(self.rect.size)
+            self.img.fill(self.bg)
+
+        self.enter()
 
     def enter(self):
         """Enter a scene."""
         pygame.display.set_caption(self.caption)
+    
+    def update(self):
+        """Update the nodes in a scene."""
+        pass
 
     def draw(self):
         """Draw all objects in the scene."""
-        App.screen.fill(self.bg)
-        if self.file != '':
-            App.screen.blit(self.img, (0, 0))
+        App.screen.blit(self.img, self.rect)
 
         for node in self.nodes:
             node.draw()
@@ -56,7 +162,6 @@ class Scene:
             print(event)
 
         if event.type == KEYDOWN:
-
             if event.key == K_TAB:
                 self.select_next()
         
@@ -239,6 +344,27 @@ class Text(Node):
         App.screen.blit(self.img, self.rect)
         Node.draw(self)
 
+class TextList(Node):
+  
+    def __init__(self, items, **options):
+        super().__init__(**options)
+
+        self.font = pygame.font.Font(None, 24)
+        w, h = self.font.size('abc')
+        n = len(items)
+        self.img = pygame.Surface((100, n * h))
+        self.rect.size = self.img.get_size()
+        
+        self.img.fill(Color('white'))
+        for i in range(n):
+            text = self.font.render(items[i], True, Color('black'))
+            w, h = text.get_size()
+            self.img.blit(text, ((100-w)/2, i*h))
+            print(i)
+
+    def draw(self):
+        App.screen.blit(self.img, self.rect)
+
 
 class Rectangle(Node):
     """Draw a rectangle on the screen."""
@@ -269,11 +395,20 @@ class Ellipse(Node):
         Node.draw(self)
 
 class Button(Text):
+    """Create a button object with command.""" 
+    button_color = Color('blue')
+    size = (160, 40)
+    border = 2
+    border_color = Color('magenta')
+
     def __init__(self, text, cmd='',  **options):
         super().__init__(text, **options)
+        self.__dict__.update(Button.options)
+
         self.cmd = cmd
         self.rect.size = 160, 40
         self.button_color = Color('green')
+
         self.text_rect = self.img.get_rect()
         self.text_rect.center = self.rect.center
 
@@ -283,103 +418,15 @@ class Button(Text):
 
     def draw(self):
         pygame.draw.rect(App.screen, self.button_color, self.rect)
+        pygame.draw.rect(App.screen, self.border_color, self.rect, self.border)
+        
         App.screen.blit(self.img, self.text_rect)
         Node.draw(self)
 
-class App:
-    """Create a single-window app with multiple scenes."""
-    scenes = []
-    scene = None
-
-    def __init__(self):
-        """Initialize pygame and the application."""
-        pygame.init()
-        self.flags = RESIZABLE & NOFRAME
-        self.rect = Rect(0, 0, 640, 240)
-        App.screen = pygame.display.set_mode(self.rect.size, self.flags)
-
-        self.shortcuts = {K_ESCAPE: 'App.running=False',
-                          (K_q, KMOD_LMETA): 'App.running=False',
-                          (K_f, KMOD_LMETA): 'self.toggle_full_screen()',
-                          (K_r, KMOD_LMETA): 'self.toggle_resizable()',
-                          (K_h, KMOD_LMETA): 'pygame.display.iconify()',
-                          (K_p, KMOD_LMETA): 'self.capture()',
-                          (K_s, KMOD_LMETA): 'self.next_scene()',
-
-                          K_e: 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
-                          K_n: 'Node(pos=pygame.mouse.get_pos())',
-                          K_r: 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
-                          K_t: 'Text("Text", pos=pygame.mouse.get_pos())',
-                          K_o: 'self.scene.print_nodes()',
-                          (K_n, KMOD_LMETA): 'print("cmd+N")',
-                          (K_x, KMOD_LALT): 'print("alt+X")',
-                          }
-
-        App.running = True
-        self.full_screen = False
-
-    def run(self):
-        """Run the main event loop."""
-        while App.running:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    App.running = False
-
-                if event.type == KEYDOWN:
-                    self.do_shortcut(event)
-
-                # Send the event to the scene
-                App.scene.do_event(event)
-
-            self.draw()
-
-        pygame.quit()
-
-    def draw(self):
-        """Draw the objects of the current scene to the screen."""
-        App.scene.draw()
-
-    def next_scene(self):
-        """Switch to the next scene."""
-        i = App.scenes.index(App.scene)
-        n = len(App.scenes)
-        i = (i+1) % n
-        App.scene = App.scenes[i]
-        App.scene.enter()
-
-    def do_shortcut(self, event):
-        """Check if the key/mod combination is part of the shortcuts
-        dictionary and execute it. More shortcuts can be added 
-        to the ``self.shortcuts`` dictionary by the program."""
-        k = event.key
-        m = event.mod
-
-        if k in self.shortcuts and m == 0:
-            exec(self.shortcuts[k])
-        elif (k, m) in self.shortcuts:
-            exec(self.shortcuts[k, m])
-
-    def capture(self):
-        """Save a screen capture to the directory of the 
-        calling class, under the class name in PNG format."""
-        name = type(self).__name__
-        module = sys.modules['__main__']
-        path, name = os.path.split(module.__file__)
-        name, ext = os.path.splitext(name)
-        filename = path + '/' + name + '.png'
-        pygame.image.save(App.screen, filename)
-
-    def toggle_full_screen(self):
-        self.flags ^= FULLSCREEN
-        pygame.display.set_mode((0, 0), self.flags)
-
-    def toggle_resizable(self):
-        self.flags ^= RESIZABLE
-        pygame.display.set_mode(self.rect.size, self.flags)
 
 if __name__ == '__main__':
     app = App()
-    Scene()
+    Scene(caption='Scene 0')
     Text('Scene 0')
     Ellipse(Color('pink'), Color('magenta'), 10)
     Rectangle(Color('red'), Color('blue'), 10)
@@ -388,5 +435,7 @@ if __name__ == '__main__':
     Text('Scene 1')
     Button('Scene', cmd='print(App.scene)')
     Button('Button 1', cmd='print(123)')
+    TextList(['Amsterdam', 'Berlin', 'Calcutta'])
+    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
     
     app.run()
