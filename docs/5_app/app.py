@@ -1,25 +1,60 @@
+"""
+App
+- there is only one App object
+- an App has multiple scenes (App.scenes)
+- there one current scene (App.scene)
+
+Scene
+- a scene has multiple objects (Scene.nodes)
+- objects are ordered (the last displayed last)
+- the object which is clicked becomes active
+- the active object becomes the top object
+- the active oject has focus (Scene.focus)
+- TAB and shift-TAB select the next object
+
+Node objects
+- objects have default position and size (pos, size)
+- objects are automatically placed at creation (dir, gap)
+- objects inherit options (color, size, ...) from the previous object
+- ARROW keys move the active object
+
+A Node object has the following properties
+- clickable: mouse-click has effect
+- editable: text can be edited
+- movable: can be moved (mouse, arrow-keys)
+- visible: is drawn
+- outlined: an outline is drawn
+- acitve: 
+"""
+
 import pygame
 from pygame.locals import *
 import copy
-import os, copy
+import os
 import sys
 import inspect
 import numpy as np
 
-class App:
-    """Create a single-window app with multiple scenes hierarchial objects."""
-    scenes = []
-    scene = None
-    screen = None
-    running = True
-    selection = []
+DBG_EVENTS = 1
+DBG_LABELS = 2
+DBG_OUTLINE = 4
 
-    def __init__(self):
+class App:
+    """Create a single-window app with multiple scenes having multiple objects."""
+    scenes = []     # scene list
+    scene = None    # current scene
+    screen = None   # main display window
+    running = True  # the app is running
+    selection = None # list of selected objects (cut/copy/paste)
+    debug = DBG_LABELS + DBG_OUTLINE
+
+    def __init__(self, size=(640, 240), shortcuts={}):
         """Initialize pygame and the application."""
         pygame.init()
-        self.flags = 0
-        self.rect = Rect(0, 0, 640, 240)
+        self.flags = 0  # RESIZABLE, FULLSCREEN, NOFRAME
+        self.rect = Rect(0, 0, *size)
         App.screen = pygame.display.set_mode(self.rect.size, self.flags)
+        App.root = self
 
         self.shortcuts = {(K_ESCAPE, KMOD_NONE): 'App.running=False',
                           (K_q, KMOD_LMETA): 'App.running=False',
@@ -31,10 +66,10 @@ class App:
                           (K_p, KMOD_LMETA): 'self.capture()',
                           (K_s, KMOD_LMETA): 'self.next_scene()',
 
-                          (K_e, KMOD_NONE): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
-                          (K_n, KMOD_NONE): 'Node(pos=pygame.mouse.get_pos())',
-                          (K_r, KMOD_NONE): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
-                          (K_t, KMOD_NONE): 'Text("Text", pos=pygame.mouse.get_pos())',
+                          (K_e, KMOD_LCTRL): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
+                          (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
+                          (K_r, KMOD_LCTRL): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
+                          (K_t, KMOD_LCTRL): 'Text(pos=pygame.mouse.get_pos())',
 
                           (K_x, KMOD_LMETA): 'print("cmd+X")',
                           (K_x, KMOD_LALT): 'print("alt+X")',
@@ -46,8 +81,15 @@ class App:
                           (K_x, KMOD_LMETA): 'App.scene.cut()',
                           (K_c, KMOD_LMETA): 'App.scene.copy()',
                           (K_v, KMOD_LMETA): 'App.scene.paste()',
-                         
+
+                          (K_e, KMOD_LMETA): 'App.debug ^= DBG_EVENTS',
+                          (K_l, KMOD_LMETA): 'App.debug ^= DBG_LABELS',
+                          (K_o, KMOD_LMETA): 'App.debug ^= DBG_OUTLINE',
+
+                          (K_d, KMOD_LMETA): 'App.scene.focus.debug()',
+                          
                           }
+        self.shortcuts.update(shortcuts)
 
     def run(self):
         """Run the main event loop."""
@@ -61,8 +103,7 @@ class App:
 
                 # Send the event to the scene
                 App.scene.do_event(event)
-                App.scene.update()
-
+            App.scene.update()
             App.scene.draw()
 
         pygame.quit()
@@ -107,26 +148,28 @@ class App:
         self.flags ^= NOFRAME
         pygame.display.set_mode(self.rect.size, self.flags)
 
+    def __str__(self):
+        return self.__class__.__name__
 
 class Scene:
     """Create a new scene and initialize the node options."""
-    id = 0
-    options = { 'bg': Color('gray'), 
+    options = { 'id': 0,
+                'bg': Color('gray'), 
                 'caption': 'Pygame',
-                'file': ''}
+                'file': '',
+                'focus': None,
+                }
 
-    def __init__(self, *args, **options):
+    def __init__(self, **options):
         # Append the new scene and make it the current scene
         App.scenes.append(self)
         App.scene = self
+        self.nodes = []
 
         # Reset Node options to default
         Node.options = Node.options0.copy()
 
         # Set the instance id and increment the class id
-        self.id = Scene.id
-        Scene.id += 1
-        self.nodes = []
         self.selection = []
 
         # Update class options from current **options argument
@@ -134,6 +177,7 @@ class Scene:
 
         # Add/update instance options from class options
         self.__dict__.update(Scene.options)
+        Scene.options['id'] += 1
 
         self.rect = App.screen.get_rect()
         if self.file != '':
@@ -156,7 +200,6 @@ class Scene:
     def draw(self):
         """Draw all objects in the scene."""
         App.screen.blit(self.img, self.rect)
-
         for node in self.nodes:
             node.draw()
         pygame.display.flip()
@@ -164,22 +207,23 @@ class Scene:
     def do_event(self, event):
         """Handle the events of the scene."""
         mods = pygame.key.get_mods()
-        if mods & KMOD_CTRL:
+        if App.debug & 1:
             print(event)
 
         if event.type == KEYDOWN:
             if event.key == K_TAB:
-                self.select_next()
+                self.next_focus()
         
         if event.type == MOUSEBUTTONDOWN:
-            if not mods & KMOD_SHIFT:  
-                self.selection = []
+            self.focus = None
             for node in self.nodes:
                 node.selected = False
                 if node.rect.collidepoint(event.pos):
-                    self.selection.append(node)
-            for node in self.selection:
-                node.selected = True
+                    self.focus = node
+
+                    # place node on top
+                    self.nodes.remove(node)
+                    self.nodes.append(node)
 
         elif event.type == MOUSEMOTION:
             pass
@@ -187,20 +231,18 @@ class Scene:
         elif event.type == MOUSEBUTTONUP:
             pass
         
-        for node in self.selection:
-            node.do_event(event)
+        if self.focus != None:
+            self.focus.do_event(event)
 
-    def select_next(self, d=1):
-        """Move to the next object in the node list."""
-        if len(self.selection) > 0:
-            node = self.selection[0]
-            i = self.nodes.index(node)
+    def next_focus(self, d=1):
+        """Advance focus to next node."""
+        if self.focus == None:
+            self.focus = self.nodes[0]
+        else:
+            i = self.nodes.index(self.focus)
             n = len(self.nodes)
             i = (i+d) % n
-            self.selection = [self.nodes[i]]
-            for node in self.nodes:
-                node.selected = False
-            self.nodes[i].selected = True
+            self.focus = self.nodes[i]
 
     def cut(self):
         """Cuts the selected objects and places them in App.selection."""
@@ -208,7 +250,7 @@ class Scene:
         App.selection = self.selection
         for obj in self.selection:
             print('remove', obj)
-            self.nodes.remove(obj)
+            self.children.remove(obj)
         self.selection = []
 
     def copy(self):
@@ -224,10 +266,10 @@ class Scene:
             obj2.rect = obj.rect.copy()
             obj2.rect.topleft = pygame.mouse.get_pos()
             obj2.__dict__.update(obj.__dict__)
-            self.nodes.append(obj)
+            self.children.append(obj)
 
     def __str__(self):
-        return 'Scene {}'.format(self.id)
+        return 'Scene{}'.format(self.id)
 
 
 class Node:
@@ -237,27 +279,40 @@ class Node:
                 'size': (100, 40),
                 'dir': (0, 1),
                 'gap': (10, 10),
-                'color': Color('red'),
-                'd': 1,
+
                 'id': 0,
-                'selected': False,
-                'visible': True}
+                'file': '',
+                'bg': None,
+                'border_thick': 0,
+                'border_col': None,
+                'img': None,
+                'time': 0,  # for double-click
+
+                'visible': True,
+                'movable': True,
+                'resizable': True,
+                }
+
+    # current options dictionary for each node
     options = {}
+    resize = False
+
+    # color and size/thickness
+    label = Color('red'), 14
+    outline = Color('red'), 1
+    focus = Color('blue'), 1
+    selection = Color('magenta'), 1
+    dbl_click_time = 200
 
     # key direction vectors
     dirs = {K_LEFT:(-1, 0), K_RIGHT:(1, 0), K_UP:(0, -1), K_DOWN:(0, 1)}
-    
-    # selection color and line thickness
-    sel_color = Color('blue')
-    sel_thick = 1
 
     def __init__(self, **options):
+        # update current class options
         Node.options.update(options)
 
-        # create node attributes from class options
+        # create instance attributes from current class options
         self.__dict__ = Node.options.copy()
-        self.parent = App.scene
-        self.time = pygame.time.get_ticks()
         
         # update the position
         if self.id > 0 and 'pos' not in options: 
@@ -269,53 +324,104 @@ class Node:
         Node.options['id'] += 1
 
         self.rect = Rect(*self.pos, *self.size)
-
-        font = pygame.font.Font(None, 14)
-        self.label_img = font.render(str(self), True, self.color)
-
-        # Append the node to the current window
+        self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
         App.scene.nodes.append(self)
 
+        # create node label
+        font = pygame.font.Font(None, Node.label[1])
+        self.label_img = font.render(str(self), True, Node.label[0])
+
+        if self.file != '':
+            self.img0 = pygame.image.load(self.file)    
+            self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
+        else:
+            self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
+            if self.bg == None:
+                self.img.fill((0, 0, 0, 0))
+            else:
+                self.img.fill(self.bg)
+            if self.border_thick > 0:
+                pygame.draw.rect(self.img, self.border_col, Rect((0, 0), self.rect.size), self.border_thick)
+
     def do_event(self, event):
+        mods = pygame.key.get_mods()
+
         if event.type == MOUSEBUTTONDOWN:
             # detect double click
             t = pygame.time.get_ticks()
-            if t - self.time < 200:
+            if t - self.time < Node.dbl_click_time:
                 self.double_click()
             self.time = t
 
-        if event.type == MOUSEMOTION: 
-            # move the node if selected + cmd key
-            if self.selected:
-                if pygame.key.get_mods() & KMOD_META:
+            # click in resize button
+            r = Rect(0, 0, 7, 7)
+            r.bottomright = self.rect.bottomright
+            if r.collidepoint(event.pos) and self.resizable:
+                Node.resize = True
+
+        elif event.type == MOUSEMOTION: 
+            # resize the node
+            if Node.resize:
+                dx, dy = event.rel
+                if mods & KMOD_LALT:
+                    self.rect.inflate_ip(2*dx, 2*dy)
+                else:
+                    self.rect.width += dx
+                    self.rect.height += dy
+                if self.file != '':
+                    self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
+                
+            if self == App.scene.focus and self.movable:
+                if mods & KMOD_META:
                     screen_rect =  App.screen.get_rect()
                     if screen_rect.contains(self.rect.move(event.rel)):
                         self.rect.move_ip(event.rel)
+
+        elif event.type == MOUSEBUTTONUP:
+            Node.resize = False
         
         elif event.type == KEYDOWN:
             if event.key in Node.dirs:
-                v = Node.dirs[event.key]
-                self.rect.move_ip(v)
+                dx, dy = Node.dirs[event.key]
+                if mods & KMOD_ALT:
+                    self.rect.move_ip(10*dx, 10*dy)
+                else:
+                    self.rect.move_ip(dx, dy)
+
+    def update(self):
+        pass
 
     def draw(self):
-        pygame.draw.rect(App.screen, self.color, self.rect, self.d)
-        if self.selected:
-            pygame.draw.rect(App.screen, Node.sel_color, self.rect, Node.sel_thick)
+        """Draw the node and its children."""
+        if self.visible:
+            App.screen.blit(self.img, self.rect)
+        
+        if App.debug & DBG_OUTLINE:
+            pygame.draw.rect(App.screen, Node.outline[0], self.rect, Node.outline[1])
 
-            r0 = Rect(self.rect.topleft, (5, 5))
-            pygame.draw.rect(App.screen, Node.sel_color, r0)
+        if App.debug & DBG_LABELS:
+            App.screen.blit(self.label_img, self.rect)
 
-            r0 = Rect(self.rect.topright, (5, 5))
-            pygame.draw.rect(App.screen, Node.sel_color, r0)
-
-        App.screen.blit(self.label_img, self.rect)
+        if self == App.scene.focus:
+            pygame.draw.rect(App.screen, Node.focus[0], self.rect, Node.focus[1])
+            if self.resizable:
+                r = Rect(0, 0, 7, 7)
+                r.bottomright = self.rect.bottomright
+                pygame.draw.rect(App.screen, Node.focus[0], r, Node.focus[1])
     
     def double_click(self):
         print('double-click in', self)
 
+    def debug(self):
+        """Print all node options."""
+        print('-'*30)
+        print(self)
+        for k, v in self.__dict__.items():
+            print(k, '=', v)
+
     def __str__(self):
         return self.__class__.__name__ + str(self.id)
-            
+
 
 class Text(Node):
     """Create a text object which knows how to draw itself."""
@@ -352,22 +458,67 @@ class Text(Node):
         self.img = self.font.render(self.text, True, self.fontcolor, self.background)
         self.rect.size = self.img.get_size()
 
-    def do_event(self, event):
-        super().do_event(event)
-        if event.type == KEYDOWN:
-            if event.key == K_RETURN:
-                self.selected = False
-                exec(self.cmd)
-            elif event.key == K_BACKSPACE:
-                self.text = self.text[:-1]
-            elif not (event.mod & KMOD_META + KMOD_CTRL):
-                self.text += event.unicode
-            self.render()
-
     def draw(self):
         """Draw the text surface on the screen."""
         App.screen.blit(self.img, self.rect)
         Node.draw(self)
+
+class TextEdit(Text):
+    """Text with movable cursor to edit the text."""
+    def __init__(self, text='TextEdit', cmd='', **options):
+        super().__init__(text=text, cmd=cmd, **options)
+
+        self.cursor_pos = len(self.text)
+        self.cursor_img = pygame.Surface((2, self.rect.height))
+        self.cursor_img.fill(Color('red'))
+        self.cursor_rect = self.cursor_img.get_rect()
+        self.cursor_rect.topleft = self.rect.topright
+
+    def do_event(self, event):
+        """Move cursor left/right, add/backspace text."""
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                App.scene.focus = None
+                exec(self.cmd)
+            elif event.key == K_BACKSPACE:
+                t0 = self.text[:self.cursor_pos-1]
+                t1 = self.text[self.cursor_pos:]
+                self.text = t0 + t1
+                self.cursor_pos = max(0, self.cursor_pos-1)
+            elif event.key in (K_TAB, K_UP, K_DOWN):
+                pass
+            elif event.key == K_LEFT:
+                self.cursor_pos = max(0, self.cursor_pos-1)
+                
+            elif event.key == K_RIGHT:
+                self.cursor_pos = min(len(self.text), self.cursor_pos+1)
+
+            elif not (event.mod & KMOD_META + KMOD_CTRL):
+                t0 = self.text[:self.cursor_pos]
+                t1 = self.text[self.cursor_pos:]
+                self.text = t0 + event.unicode + t1
+                self.cursor_pos += 1
+
+            self.render()
+
+        if event.type == MOUSEBUTTONDOWN:
+            for i in range(len(self.text+' ')):
+                txt = self.text[:i]
+                w, h = self.font.size(self.text[:i])
+                if w+3 > (event.pos[0] - self.rect.left):
+                    break
+            self.cursor_pos = i
+
+        w, h = self.font.size(self.text[:self.cursor_pos])
+        self.cursor_rect = self.rect.move((w, 0))
+
+
+    def draw(self):
+        Node.draw(self)
+        if self == App.scene.focus:
+            t = pygame.time.get_ticks()
+            if (t % 600) > 300:
+                App.screen.blit(self.cursor_img, self.cursor_rect)
 
 class TextList(Node):
   
@@ -388,7 +539,7 @@ class TextList(Node):
 
     def draw(self):
         App.screen.blit(self.img, self.rect)
-
+        Node.draw(self)
 
 class Rectangle(Node):
     """Draw a rectangle on the screen."""
@@ -427,7 +578,7 @@ class Button(Text):
 
     def __init__(self, text='Button', cmd='',  **options):
         super().__init__(text, **options)
-        self.__dict__.update(Button.options)
+        #self.__dict__.update(Button.options)
 
         self.cmd = cmd
         self.rect.size = 160, 40
@@ -445,7 +596,7 @@ class Button(Text):
         pygame.draw.rect(App.screen, self.border_color, self.rect, self.border)
         
         App.screen.blit(self.img, self.text_rect)
-        Node.draw(self)
+        #Node.draw(self)
 
 if __name__ == '__main__':
     app = App()
@@ -454,11 +605,17 @@ if __name__ == '__main__':
     Ellipse(Color('pink'), Color('magenta'), 10)
     Rectangle(Color('red'), Color('blue'), 10)
 
-    Scene(bg=Color('cyan'))
+    Scene(caption='Scene 1', bg=Color('cyan'))
     Text('Scene 1')
-    Button('Scene', cmd='print(App.scene)')
-    Button('Button 1', cmd='print(123)')
+    # Button('Scene', cmd='print(App.scene)')
+    # Button('Button 1', cmd='print(123)')
     TextList(['Amsterdam', 'Berlin', 'Calcutta'])
     TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
-        
+
+    Scene(caption='visible, outlined, movable, resizable')
+    Node(visible=False)
+    Node(visible=True, outlined=False)
+    Node(outlined=True, movable=False)
+    Node(resizable=False)
+
     app.run()
