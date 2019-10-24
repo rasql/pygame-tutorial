@@ -20,10 +20,8 @@ Node objects
 
 A Node object has the following properties
 - clickable: mouse-click has effect
-- editable: text can be edited
 - movable: can be moved (mouse, arrow-keys)
 - visible: is drawn
-- outlined: an outline is drawn
 - acitve: 
 """
 
@@ -273,7 +271,7 @@ class Scene:
 
 
 class Node:
-    """Create a node for embedded objects."""
+    """Create a node object with automatic position and inherited size."""
    # initial options for nodes in a new scene
     options0 = {'pos': (20, 20),
                 'size': (100, 40),
@@ -295,7 +293,8 @@ class Node:
 
     # current options dictionary for each node
     options = {}
-    resize = False
+    resizing = False
+    moving = False
 
     # color and size/thickness
     label = Color('red'), 14
@@ -357,11 +356,13 @@ class Node:
             r = Rect(0, 0, 7, 7)
             r.bottomright = self.rect.bottomright
             if r.collidepoint(event.pos) and self.resizable:
-                Node.resize = True
+                Node.resizing = True
+            else:
+                Node.moving = True
 
         elif event.type == MOUSEMOTION: 
             # resize the node
-            if Node.resize:
+            if Node.resizing:
                 dx, dy = event.rel
                 if mods & KMOD_LALT:
                     self.rect.inflate_ip(2*dx, 2*dy)
@@ -371,14 +372,14 @@ class Node:
                 if self.file != '':
                     self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
                 
-            if self == App.scene.focus and self.movable:
-                if mods & KMOD_META:
-                    screen_rect =  App.screen.get_rect()
-                    if screen_rect.contains(self.rect.move(event.rel)):
-                        self.rect.move_ip(event.rel)
+            if Node.moving and self.movable:
+                screen_rect =  App.screen.get_rect()
+                if screen_rect.contains(self.rect.move(event.rel)):
+                    self.rect.move_ip(event.rel)
 
         elif event.type == MOUSEBUTTONUP:
-            Node.resize = False
+            Node.resizing = False
+            Node.moving = False
         
         elif event.type == KEYDOWN:
             if event.key in Node.dirs:
@@ -460,7 +461,7 @@ class Text(Node):
 
     def draw(self):
         """Draw the text surface on the screen."""
-        App.screen.blit(self.img, self.rect)
+        #App.screen.blit(self.img, self.rect)
         Node.draw(self)
 
 class TextEdit(Text):
@@ -541,6 +542,47 @@ class TextList(Node):
         App.screen.blit(self.img, self.rect)
         Node.draw(self)
 
+class TextMenu(Text):
+    """Select a text item from an items list."""
+    def __init__(self, items, i=0, **options):
+        super().__init__(items[i], **options)
+        self.items = items
+        self.n = len(items)
+        self.i = i
+
+    def do_event(self, event):
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                #App.scene.focus = None
+                exec(self.cmd)
+            if event.key == K_RIGHT:
+                self.i = (self.i + 1) % self.n
+            if event.key == K_LEFT:
+                self.i = (self.i - 1) % self.n
+            self.text = self.items[self.i]
+            self.render()
+
+class InputNum(Text):
+    """Input a number."""
+    def __init__(self, num=5, min=0, max=10, inc=1, **options):
+        self.text = num
+        super().__init__(str(num), **options)
+        self.min = min
+        self.max = max
+        self.num = num
+        self.inc = inc
+
+    def do_event(self, event):
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                exec(self.cmd)
+            if event.key in (K_RIGHT, K_UP):
+                self.num = min(self.max, self.num + self.inc)
+            if event.key in (K_LEFT, K_DOWN):
+                self.num = max(self.min, self.num - self.inc)
+            self.text = str(self.num)
+            self.render()
+
 class Rectangle(Node):
     """Draw a rectangle on the screen."""
 
@@ -605,17 +647,19 @@ if __name__ == '__main__':
     Ellipse(Color('pink'), Color('magenta'), 10)
     Rectangle(Color('red'), Color('blue'), 10)
 
-    Scene(caption='Scene 1', bg=Color('cyan'))
-    Text('Scene 1')
-    # Button('Scene', cmd='print(App.scene)')
-    # Button('Button 1', cmd='print(123)')
-    TextList(['Amsterdam', 'Berlin', 'Calcutta'])
-    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
+    Scene(caption='Buttons', bg=Color('cyan'))
+    Text('Buttons')
+    Button('print(scene)', cmd='print(App.scene)')
+    Button('print(123)', cmd='print(123)')
 
-    Scene(caption='visible, outlined, movable, resizable')
-    Node(visible=False)
-    Node(visible=True, outlined=False)
-    Node(outlined=True, movable=False)
-    Node(resizable=False)
+    Scene(caption='TextList', bg=Color('cyan'))
+    Text('TextMenu')
+    TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
+    
+    Text('InputNum')
+    InputNum(cmd='print(self.num)')
+    InputNum(num=1.2, inc=0.2, cmd='print(self.num)')
+
+    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
 
     app.run()
