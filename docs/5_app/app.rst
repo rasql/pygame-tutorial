@@ -305,27 +305,25 @@ if they can be placed automatically inside a scene.
 * ``size`` the current size
 * ``dir`` the current direction: vertical (1, 0), horizontal (0, 1), diagonal (1, 1)
 * ``gap`` the spacing
-* ``color`` the color
-* ``d`` the line thickness
 
 The default placement direction is vertical. 
 Nodes placed in a scene stack up vertically. 
 At any time the node position, node size, 
-node color or node thickness can be changed::
+node gap or node direction can be changed::
 
     Scene(caption='Nodes - vertical placement')
     Node()
     Node()
     Node()
 
-    Node(pos=(200, 20), color=Color('blue'), d=3)
+    Node(pos=(200, 20))
     Node()
     Node()
     
 .. image:: node1a.png
 
 Here we change the node placement direction to horizontal, dir=(0, 1).
-At any time we can change the node position or node color.
+At any time we can change the node position or gap.
 We can place the inital node position at (0, 0) and change the gap to (0, 0)::
 
     Scene(caption='Nodes - horizontal placement')
@@ -333,7 +331,7 @@ We can place the inital node position at (0, 0) and change the gap to (0, 0)::
     Node()
     Node()
 
-    Node(pos=(0, 100), color=Color('green'))
+    Node(pos=(0, 100))
     Node()
     Node()
 
@@ -352,52 +350,6 @@ dir = (1, 1)::
 Here is the complete code:
 
 .. literalinclude:: node1.py
-
-Text attributes
----------------
-
-We store all pygame text attributes as class variables::
-
-    class Text(Node):
-        """Create a text object which knows how to draw itself."""
-
-        fontname = None
-        fontsize = 36
-        fontcolor = Color('black')
-        background = None
-        italic = False
-        bold = False
-        underline = False
-
-After initializing the Node, we update the instance variables
-from the Text class variables::
-
-    super().__init__(**options)
-    self.__dict__.update(Text.options)
-
-Most of the attributes are set at font creation::
-
-   def set_font(self):
-        """Set the font and its properties."""
-        self.font = pygame.font.Font(self.fontname, self.fontsize)
-        self.font.set_bold(self.bold)
-        self.font.set_italic(self.italic)
-        self.font.set_underline(self.underline)
-
-The colors are set when rendering the text::
-
-    def render(self):
-        """Render the text into an image."""
-        self.img = self.font.render(self.text, True, self.fontcolor, self.background)
-        self.rect.size = self.img.get_size()
-
-Here is a code example:
-
-.. literalinclude:: text1.py
-
-Which produces the following result.
-
-.. image:: text1.png
 
 
 Making sounds

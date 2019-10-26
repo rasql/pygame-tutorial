@@ -1,74 +1,127 @@
 Create a graphical user interface (GUI)
 =======================================
 
-Shortcut keys
--------------
+The graphical user interface (GUI) consists of all the elements the user can interact with 
+(read, click, drag, resize, select, input):
 
-The simplest way to decode shortcut keys is to use a dictionary. 
-This is fast, short and easy to extend. We define the following 
-dictionary which uses as the key a simple **keyboard key code** or 
-the combination of key and modifier, given as a tuple (k, m). 
-The dictionary value is a string which is executable:: 
+- text
+- buttons
+- checkboxes, radio buttons
+- menus (pop-up, pull-down)
+- listboxes
+- sliders
 
-    d = {
-        K_a:'print("A")',
-        (K_a, KMOD_LSHIFT):'print("shift+A")',
-        (K_a, KMOD_LCTRL):'print("ctrl+A")',
-        (K_a, KMOD_LALT):'print("alt+A")',
-        (K_a, KMOD_LMETA):'print("cmd+A")', 
-        K_UP:'print("UP")',
-        K_LEFT:'print("LEFT")',
-    }
+Text attributes
+---------------
 
-Inside the :class:`ShortcutDemo` class we implement the :meth:`on_event`.
-If the event is a keydown event, we define local variables *k* and *m* 
-for the key and modifier.
-If *k* is in the dictionary we execute the associated command string. Otherwise we 
-execute look if the tuple *(k, m)* is in the dictionary::
+We store all pygame text attributes as class variables::
 
-    def on_event(self, event):
-        if event.type == KEYDOWN:
-            k = event.key
-            m = event.mod
-            if k in d and m == 0 :
-                exec(d[k])
-            elif (k, m) in d:
-                exec(d[k, m])
+    class Text(Node):
+        """Create a text object which knows how to draw itself."""
 
-.. automodule:: gui1
+        fontname = None
+        fontsize = 36
+        fontcolor = Color('black')
+        background = None
+        italic = False
+        bold = False
+        underline = False
 
-.. autoclass:: ShortcutDemo
-   :members:
+After initializing the Node, we update the instance variables
+from the Text class variables::
+
+    super().__init__(**options)
+    self.__dict__.update(Text.options)
+
+The font size and the tree styles (bold, italic, underline) are set at font creation::
+
+   def set_font(self):
+        """Set the font and its properties."""
+        self.font = pygame.font.Font(self.fontname, self.fontsize)
+        self.font.set_bold(self.bold)
+        self.font.set_italic(self.italic)
+        self.font.set_underline(self.underline)
+
+The font color and the backgroudn color are set when rendering the text::
+
+    def render(self):
+        """Render the text into an image."""
+        self.img = self.font.render(self.text, True, self.fontcolor, self.background)
+        self.rect.size = self.img.get_size()
+
+Here is a code example:
+
+.. literalinclude:: text1.py
+
+Which produces the following result.
+
+.. image:: text1.png
+
+
+Horizontal and vertical alignement
+----------------------------------
+
+For a given box size, text can be aligned horizontally to the left, center, or right.
+The following code places the text image to these three positions::
+
+    w, h = self.rect.size
+    w0, h0 = self.text_img.get_size()
+    
+    if self.h_align == 0:
+        x = 0
+    elif self.h_align == 1:
+        x = (w-w0)//2
+    else:
+        x = w-w0
+
+In the vertical position the text image can be aligne at the top, middle or bottom::
+
+    if self.v_align == 0:
+        y = 0
+    elif self.v_align == 1:
+        y = (h-h0)//2
+    else:
+        y = h-h0
+
+    self.img0.blit(self.text_img, (x, y))
+    self.img = self.img0.copy()
+
+The image `img0` is the orignal, used for scaling. The `img` is the one used for drawing.
+
+Here is a code example:
+
+.. literalinclude:: text2.py
+
+Which produces the following result:
+
+.. image:: text2.png
+
+Text attributes
+---------------
+
+A Text object has various attributes which are remembered.
+
+Here is a code example:
+
+.. literalinclude:: text3.py
+
+Which produces the following result:
+
+.. image:: text3.png
 
 
 Buttons
 -------
 
-.. automodule:: gui2
+The button class displays a text and executes a command upon a mouse-click
 
-.. autoclass:: ButtonDemo
-   :members:
-
-.. image:: gui2.png
+.. image:: button1.png
 
 
-Selecting objects
-^^^^^^^^^^^^^^^^^
+TextList
+--------
 
-.. automodule:: gui4
+The TextList class displays a list of items. One item can be selected with
+a mouse-click or with the UP/DOWN arrow keys. Pressing the RETURN key executes the command.
 
-.. autoclass:: GuiDemo
-   :members:
-
-.. image:: gui4.png
-
-
-Selecting objects
-^^^^^^^^^^^^^^^^^
-
-.. automodule:: gui5
-
-.. autoclass:: GuiDemo
-   :members:
-
-.. image:: gui5.png
+.. image:: textlist1.png

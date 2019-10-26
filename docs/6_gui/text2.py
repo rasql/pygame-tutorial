@@ -1,40 +1,19 @@
-"""
-Floating text
--------------
+"""Horizontal and vertical text alignement."""
+from app import *
 
-In this exemple words from a list float over the screen, 
-with random speed vx and vy in the range (-3, ... +3), 
-and starting at random positions.
-"""
-
-import pygame
-from random import randint
-from pygame.locals import *
-from pygamelib import *
-
-words = ['beauty', 'strength', 'love', 'dream', 'silence']
-
-class TextDemo2(App):
-    """Draw text in different sizes and colors."""
+class Demo(App):
     def __init__(self):
-        super(TextDemo2, self).__init__()
-        self.shortcuts[K_a] = 'self.new_text()'
-        self.shortcuts[(K_BACKSPACE, KMOD_LMETA)] = 'App.objects.pop()'
+        super().__init__()
+
+        Scene(caption='Text Alignment', bg=Color('pink'))
+        Text('left', size=(200, 40), fontsize=24)
+        Text('center', h_align=1)
+        Text('right', h_align=2)
+        Text(bg=Color('blue'), fontcolor=Color('white'))
         
-        Text('Floating text', size=50)
-        Text('Press A to add, cmd+BACK to remove', size=24)
-        for i in range(10):
-            self.new_text()
-
-    def new_text(self):
-        i = randint(0, 4)
-        word = words[i]
-        vx = randint(-3, 3)
-        vy = randint(-3, 3)
-        size = randint(20, 40)
-        x = randint(0, App.w)
-        y = randint(0, App.h)
-        Text(word, pos=(x, y), size=size, v=(vx, vy))
-
+        Text('top', pos=(250, 20), h_align=1)
+        Text('middle', v_align=1)
+        Text('bottom', v_align=2)
+        
 if __name__ == '__main__':
-    TextDemo2().run()
+    Demo().run()

@@ -1,19 +1,14 @@
-"""Template for making games."""
+"""Template for making applications."""
+from app import *
 
-import pygame
-from pygame.locals import *
-from pygamelib import *
-
-class AppDemo(App):
-    """Make a subclass of the App class."""
+class Demo(App):
     def __init__(self):
-        super(AppDemo, self).__init__()
-        Text('AppDemo Template', size=48, bgcolor=CYAN)
-        Text('Start your app with this template', size=24)
-        
-        Rectangle(size=(100,30))
-        Rectangle(d=3)
-        Ellipse()
+        super().__init__()
 
+        Scene(caption='My application')
+        Node()
+        Text()
+        Button()
+        
 if __name__ == '__main__':
-    AppDemo().run()
+    Demo().run()

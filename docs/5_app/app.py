@@ -1,28 +1,40 @@
 """
 App
+---
+
 - there is only one App object
-- an App has multiple scenes (App.scenes)
-- there one current scene (App.scene)
+- an app has multiple scenes (App.scenes)
+- an app has one current scene (App.scene)
+- an app has one window to draw in (App.screen)
 
 Scene
-- a scene has multiple objects (Scene.nodes)
-- objects are ordered (the last displayed last)
+
+- a scene has multiple nodes or objects (App.scene.nodes)
+- objects are ordered: the last in the list is displayed last
 - the object which is clicked becomes active
 - the active object becomes the top object
-- the active oject has focus (Scene.focus)
+- the active oject has focus (App.scene.focus)
 - TAB and shift-TAB select the next object
 
-Node objects
-- objects have default position and size (pos, size)
-- objects are automatically placed at creation (dir, gap)
-- objects inherit options (color, size, ...) from the previous object
+Node (object)
+
+- nodes have default position and size (pos, size)
+- nodes are automatically placed at creation (dir, gap)
+- nodes inherit options (color, size, ...) from the previous object
 - ARROW keys move the active object
 
 A Node object has the following properties
+
 - clickable: mouse-click has effect
 - movable: can be moved (mouse, arrow-keys)
 - visible: is drawn
-- acitve: 
+- has focus
+
+Debug
+
+- display outline (cmd+O)
+- display node label (cmd+L)
+- print events to console (cmd+E)
 """
 
 import pygame
@@ -193,7 +205,8 @@ class Scene:
     
     def update(self):
         """Update the nodes in a scene."""
-        pass
+        for node in self.nodes:
+            node.update()
 
     def draw(self):
         """Draw all objects in the scene."""
@@ -285,6 +298,7 @@ class Node:
                 'border_col': None,
                 'img': None,
                 'time': 0,  # for double-click
+                'cmd': '',  # command string
 
                 'visible': True,
                 'movable': True,
@@ -314,9 +328,11 @@ class Node:
         self.__dict__ = Node.options.copy()
         
         # update the position
+        
         if self.id > 0 and 'pos' not in options: 
-            x = self.pos[0] + self.dir[0] * (self.size[0] + self.gap[0])
-            y = self.pos[1] + self.dir[1] * (self.size[1] + self.gap[1])
+            last = App.scene.nodes[-1].rect
+            x = self.pos[0] + self.dir[0] * (last.size[0] + self.gap[0])
+            y = self.pos[1] + self.dir[1] * (last.size[1] + self.gap[1])
             self.pos = x, y
             Node.options['pos'] = x, y
         
@@ -329,6 +345,8 @@ class Node:
         # create node label
         font = pygame.font.Font(None, Node.label[1])
         self.label_img = font.render(str(self), True, Node.label[0])
+        self.label_rect = self.label_img.get_rect()
+        self.label_rect.bottomleft = self.rect.topleft
 
         if self.file != '':
             self.img0 = pygame.image.load(self.file)    
@@ -369,13 +387,14 @@ class Node:
                 else:
                     self.rect.width += dx
                     self.rect.height += dy
-                if self.file != '':
-                    self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
+                #if self.file != '':
+                self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
                 
             if Node.moving and self.movable:
                 screen_rect =  App.screen.get_rect()
                 if screen_rect.contains(self.rect.move(event.rel)):
                     self.rect.move_ip(event.rel)
+                    self.label_rect.move_ip(event.rel)
 
         elif event.type == MOUSEBUTTONUP:
             Node.resizing = False
@@ -401,7 +420,7 @@ class Node:
             pygame.draw.rect(App.screen, Node.outline[0], self.rect, Node.outline[1])
 
         if App.debug & DBG_LABELS:
-            App.screen.blit(self.label_img, self.rect)
+            App.screen.blit(self.label_img, self.label_rect)
 
         if self == App.scene.focus:
             pygame.draw.rect(App.screen, Node.focus[0], self.rect, Node.focus[1])
@@ -430,14 +449,20 @@ class Text(Node):
     fontname = None
     fontsize = 36
     fontcolor = Color('black')
-    background = None
+    fontbg = None
+
     italic = False
     bold = False
     underline = False
 
+    h_align = 0
+    v_align = 0
+
     def __init__(self, text='Text', cmd='', **options):
         """Instantiate and render the text object."""
+        
         super().__init__(**options)
+
         self.__dict__.update(Text.options)
         
         self.text = text
@@ -456,13 +481,40 @@ class Text(Node):
 
     def render(self):
         """Render the text into an image."""
-        self.img = self.font.render(self.text, True, self.fontcolor, self.background)
-        self.rect.size = self.img.get_size()
+        w, h = self.rect.size
+        w0, h0 = self.font.size(self.text)
+        if w == 0:
+            w = w0 
+        if h==0:
+            h = h0
+        self.rect.size = w, h
 
-    def draw(self):
-        """Draw the text surface on the screen."""
-        #App.screen.blit(self.img, self.rect)
-        Node.draw(self)
+        self.img0 = pygame.Surface((w, h), flags=SRCALPHA)
+        if self.bg != None:
+            self.img0.fill(self.bg)
+        self.text_img = self.font.render(self.text, True, self.fontcolor, self.fontbg)
+        self.text_rect = self.text_img.get_rect()
+        
+        w, h = self.rect.size
+        w0, h0 = self.text_img.get_size()
+        
+        if self.h_align == 0:
+            x = 0
+        elif self.h_align == 1:
+            x = (w-w0)//2
+        else:
+            x = w-w0
+
+        if self.v_align == 0:
+            y = 0
+        elif self.v_align == 1:
+            y = (h-h0)//2
+        else:
+            y = h-h0
+        
+        self.rect.size = w, h
+        self.img0.blit(self.text_img, (x, y))
+        self.img = self.img0.copy()
 
 class TextEdit(Text):
     """Text with movable cursor to edit the text."""
@@ -477,6 +529,7 @@ class TextEdit(Text):
 
     def do_event(self, event):
         """Move cursor left/right, add/backspace text."""
+        #Node.do_event(self, event)
         if event.type == KEYDOWN:
             if event.key == K_RETURN:
                 App.scene.focus = None
@@ -523,25 +576,53 @@ class TextEdit(Text):
 
 class TextList(Node):
   
-    def __init__(self, items, **options):
+    def __init__(self, items, i=0, **options):
         super().__init__(**options)
 
-        self.font = pygame.font.Font(None, 24)
-        w, h = self.font.size('abc')
-        n = len(items)
-        self.img = pygame.Surface((100, n * h))
-        self.rect.size = self.img.get_size()
+        self.items = items
+        self.i = i
+        self.n = len(items)
+
         
-        self.img.fill(Color('white'))
-        for i in range(n):
-            text = self.font.render(items[i], True, Color('black'))
+        self.font = pygame.font.Font(None, 24)
+        self.h = self.font.size('')[1]
+        self.img_sel = pygame.Surface((100, self.h))
+        self.img_sel.fill(Color('gray'))
+        self.render()
+        
+    def render(self):
+        self.item = self.items[self.i]
+        self.img0 = pygame.Surface((100, self.n * self.h))
+        self.rect.size = self.img0.get_size()
+        self.img0.fill(Color('white'))
+        self.img0.blit(self.img_sel, (0, self.i * self.h))
+        for i in range(self.n):
+            text = self.font.render(self.items[i], True, Color('black'))
             w, h = text.get_size()
-            self.img.blit(text, ((100-w)/2, i*h))
+            self.img0.blit(text, ((100-w)/2, i*h))
+        self.img = self.img0.copy()
 
     def draw(self):
-        App.screen.blit(self.img, self.rect)
         Node.draw(self)
 
+    def do_event(self, event):
+        if event.type == MOUSEBUTTONDOWN:
+            x, y = event.pos
+            x -= self.rect.left
+            y -= self.rect.top
+            self.i = y // self.h
+            self.render()
+        if event.type == KEYDOWN:
+            if event.key == K_DOWN:
+                self.i = (self.i + 1) % self.n
+            elif event.key == K_UP:
+                self.i = (self.i - 1) % self.n
+            elif event.key == K_RETURN:
+                exec(self.cmd)
+            self.render()
+            
+                
+    
 class TextMenu(Text):
     """Select a text item from an items list."""
     def __init__(self, items, i=0, **options):
@@ -613,32 +694,36 @@ class Ellipse(Node):
 
 class Button(Text):
     """Create a button object with command.""" 
-    button_color = Color('blue')
-    size = (160, 40)
-    border = 2
-    border_color = Color('magenta')
+    options = { 'border': 2,
+                'size': (160, 40),
+        }
+
 
     def __init__(self, text='Button', cmd='',  **options):
         super().__init__(text, **options)
         #self.__dict__.update(Button.options)
 
         self.cmd = cmd
-        self.rect.size = 160, 40
-        self.button_color = Color('green')
+    #     self.rect.size = 160, 40
+    #     self.button_color = Color('green')
+    #     self.render()
 
-        self.text_rect = self.img.get_rect()
-        self.text_rect.center = self.rect.center
+    # def render(self):
+    #     """Create the button image with background color and centered text."""
+    #     self.img0 = pygame.Surface(self.rect.size)
+    #     self.img0.fill(Color('green'))
+    #     self.text_img = self.font.render(self.text, True, self.fontcolor, self.fontbg)
+    #     self.text_rect = self.text_img.get_rect()
+    #     self.text_rect.center = self.rect.center
+    #     self.img0.blit(self.text_img, self.text_rect)
+    #     self.img = self.img0.copy()
+    #     self.size = self.rect.size
 
     def do_event(self, event):
+        super().do_event(event)
         if event.type == MOUSEBUTTONDOWN:
             exec(self.cmd)
 
-    def draw(self):
-        pygame.draw.rect(App.screen, self.button_color, self.rect)
-        pygame.draw.rect(App.screen, self.border_color, self.rect, self.border)
-        
-        App.screen.blit(self.img, self.text_rect)
-        #Node.draw(self)
 
 if __name__ == '__main__':
     app = App()
@@ -647,19 +732,33 @@ if __name__ == '__main__':
     Ellipse(Color('pink'), Color('magenta'), 10)
     Rectangle(Color('red'), Color('blue'), 10)
 
+    Scene(caption='TextList', bg=Color('cyan'))
+    Text('TextMenu')
+    TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
+    
+    Scene(caption='InputNum', bg=Color('cyan'))
+    Text('Enter numeric input')
+    InputNum(cmd='print(self.num)')
+    InputNum(num=1.2, inc=0.2, cmd='print(self.num)')
+
+    Scene(caption='TextList')
+    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
+
+    cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 'Harrington', 'Melbourne']
+    TextList(cities, dir=(1, 0))
+
     Scene(caption='Buttons', bg=Color('cyan'))
     Text('Buttons')
     Button('print(scene)', cmd='print(App.scene)')
     Button('print(123)', cmd='print(123)')
 
-    Scene(caption='TextList', bg=Color('cyan'))
-    Text('TextMenu')
-    TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
-    
-    Text('InputNum')
-    InputNum(cmd='print(self.num)')
-    InputNum(num=1.2, inc=0.2, cmd='print(self.num)')
 
-    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], pos=(200, 20))
+    Scene(caption='Node size')
+    Node(size=(40, 40), dir=(1, 1))
+    Node(size=(80, 80))
+    Node(size=(60, 60))
+    Node(size=(20, 20))
+
+
 
     app.run()

@@ -1,36 +1,19 @@
-"""
-Draw Text with attributes
--------------------------
+"""Display text with different size, color and font."""
+from app import *
 
-Text is placed on the screen as a **Text()** object.
-They are automatically positioned vertically. 
-Text can have the attributes:
-
-* color
-* size
-* position
-* font
-
-The next text object inherits the previous attributes.
-"""
-
-import pygame
-from pygame.locals import *
-from pygamelib import *
-
-class TextDemo(App):
-    """Draw text in different sizes and colors."""
+class Demo(App):
     def __init__(self):
-        super(TextDemo, self).__init__()
-        Text('Hello world', size=100)
-        Text('text', color=RED)
+        super().__init__()
+        Scene(caption='Text')
+        Text('Default text')
+        Text('fontsize = 24', fontsize=24)
+        Text('fontcolor = RED', fontcolor=Color('red'))
+        Text('48 pts, blue', fontsize=48, fontcolor=Color('blue'))
+        Text('background = yellow', background=Color('yellow'))
 
-        Text('text', size=36, pos=(400, 0))
-        Text('text', color=GREEN)
-        Text('text')
-        ListLabel('menu:', ['a', 'b', 'c'])
-        Rectangle(color=RED)
-        Ellipse(color=BLUE)
-        
+        Text('italic', pos=(400, 20), italic=True)
+        Text('bold', bold=True)
+        Text('underline', underline=True, font_bg=None)
+
 if __name__ == '__main__':
-    TextDemo().run()
+    Demo().run()
