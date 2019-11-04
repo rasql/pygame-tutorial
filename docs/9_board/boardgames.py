@@ -106,7 +106,7 @@ class Board():
         self.active = True
         self.t0 = time()
         self.t = time() + 0.01
-        #pygame.init() #makes Python crass with message: illegal instruction 4
+        #pygame.init() #makes Python crash with message: illegal instruction 4
         pygame.font.init()
         self.screen = pygame.display.set_mode((self.w, self.h))
         self.font = pygame.font.SysFont('Helvetica', dy//2)

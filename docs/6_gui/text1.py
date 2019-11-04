@@ -9,7 +9,7 @@ class Demo(App):
         Text('fontsize = 24', fontsize=24)
         Text('fontcolor = RED', fontcolor=Color('red'))
         Text('48 pts, blue', fontsize=48, fontcolor=Color('blue'))
-        Text('background = yellow', background=Color('yellow'))
+        Text('fontbg = yellow', fontbg=Color('yellow'))
 
         Text('italic', pos=(400, 20), italic=True)
         Text('bold', bold=True)

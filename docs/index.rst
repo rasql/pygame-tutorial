@@ -6,8 +6,8 @@
 Welcome to making apps with Pygame!
 ===================================
 
-This tutorial explains how to make interactive application and games using Pygame. 
-The first part is a general introduction to pygame without defining classes and objects.
+This tutorial explains how to make interactive applications and games using Pygame. 
+The first part is a general introduction to Pygame without defining classes and objects.
 The second part introduces classes and objects and teaches an **object-oriented programming** 
 approach to making apps.
 
@@ -22,7 +22,7 @@ approach to making apps.
    5_app/app
    6_gui/gui
    7_sound/sound
-   tutorial4/board
+   9_board/board
    sphinx
 
 Indices and tables

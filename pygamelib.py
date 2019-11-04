@@ -377,6 +377,7 @@ class Board(Shape):
             pass
         else:
             self.sel = set([(i, j)])
+        
 
     def on_key(self, event):
         """Move the current cell if there is only one."""

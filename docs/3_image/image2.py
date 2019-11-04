@@ -1,7 +1,7 @@
 """Rotate, scale and flip an image."""
 
 import pygame
-import math
+import math, sys, os
 from pygame.locals import *
 
 RED = (255, 0, 0)
@@ -13,7 +13,11 @@ w, h = 640, 240
 screen = pygame.display.set_mode((w, h))
 running = True
 
-original = pygame.image.load('animals/bird-icon.png')
+module = sys.modules['__main__']
+path, name = os.path.split(module.__file__)
+path = os.path.join(path, '../animals/bird-icon.png')
+
+original = pygame.image.load(path)
 original.convert()
 
 rect0 = original.get_rect()

@@ -1,34 +1,36 @@
+.. highlight:: python
+
 About Sphinx
 ============
 
 Sphinx is a tool for making documentation. It was originally created for the
-Python documentation (https://docs.python.org/3/), but is now used for many other software projects.
+`Python documentation <https://docs.python.org/3/>`_, but is now used for many other software projects.
 
 Sphinx uses :term:`reStructuredText` as its markup language.
-
 It can produce HTML, LaTeX, ePub and PDF documents.
+
+Source: https://www.sphinx-doc.org
+
 
 Getting started
 ---------------
 
 After installation, you can get started quickly with the tool 
-:program:`sphinx-quickstart`. Just enter:
+:program:`sphinx-quickstart`. Just enter::
 
-.. code-block:: shell
-
-   $ sphinx-quickstart
+   sphinx-quickstart
 
 Answer each question. Be sure to say *yes* to the **autodoc** extension.
-This creates a directory several documents:
+This creates a directory with several documents:
 
 - :file:`conf.py` file, the default configuration file
 - :file:`index.rst` file, the master document
 
-The :file:`conf.py` is where you can configure all aspects of Sphinx.
-The :file:`index.rst` is the 
+The :file:`conf.py` file let's you configure all aspects of Sphinx.
+The :file:`index.rst` is the entry page for your documentation.
 
-The ``toctree`` directive determines the content of the document. For this document it looks 
-like this::
+The ``toctree`` directive determines the files to include. 
+For this project it looks like this::
 
    .. toctree::
       :maxdepth: 2
@@ -37,12 +39,7 @@ like this::
       1_intro/intro
       2_draw/draw
       3_image/image
-      4_text/text
-      5_app/app
-      6_gui/gui
-      7_sound/sound
-      tutorial4/board
-      sphinx
+      ...
 
 To build the HTML pages just run::
 
@@ -52,19 +49,142 @@ To make the PDF document just run::
 
    make pdf
 
+reStructuredText
+----------------
 
+reStructuredText (.rst) is the default markup language used with Sphinx.
+
+- paragraphs are separated by one or more blank lines
+- indentation is significant
+
+Inline styles
+^^^^^^^^^^^^^
+
+- one asterisk for *italics*
+- two asterisks for **bold**
+- backquotes for ``code```
+
+Lists
+^^^^^
+
+This code:
+
+.. code-block:: none
+   :linenos:
+
+   * This is a bulleted list.
+   * It has two items, the second
+     item uses two lines.
+
+   #. This is a numbered list.
+   #. It has two items too.
+
+produces this result:
+
+* This is a bulleted list.
+* It has two items, the second
+  item uses two lines.
+
+#. This is a numbered list.
+#. It has two items too.
+
+Hyperlinks
+^^^^^^^^^^
+
+This code::
+
+   `Source <https://www.sphinx-doc.org>`_
+
+produces `Source <https://www.sphinx-doc.org>`_
+
+Admonitions
+^^^^^^^^^^^
+
+.. danger::
+   Be careful with this code!
+
+.. tip::
+   Be careful with this code!
+
+.. warning::
+   Be careful with this code!
+
+A directive consists of
+
+- name
+- arguments
+- options
+- content
+
+Footnotes
+^^^^^^^^^
+
+This is a footnote [#f1]_ inside a text, tis is another one [#f2]_.
+
+.. rubric:: Footnotes
+
+.. [#f1] Text of the first footnote
+.. [#f2] Text of the second footnote
+
+Horizontal list
+^^^^^^^^^^^^^^^
+
+.. hlist::
+   :columns: 3
+
+   * happy
+   * short
+   * intelligent
+   * thankful
+   * displayed
+   * horizontal
+
+.. this is a comment
+
+Download
+^^^^^^^^
+
+:download:`this example script <requirements.txt>`.
+
+Include part of a file
+----------------------
+
+It is possible to include a Python object (class, method) from a file. 
+For example you can include a **class** definition with::
+
+   .. literalinclude:: 5_app/app.py
+      :pyobject: Rectangle
+      :linenos:
+      :emphasize-lines: 5-7
+
+resulting in
+
+.. literalinclude:: 5_app/app.py
+   :pyobject: Rectangle
+   :linenos:
+   :emphasize-lines: 5-7
+
+Or you can include just a **method** definition with:: 
+
+   .. literalinclude:: 5_app/app.py
+      :pyobject: Rectangle.render
+
+resulting in
+
+.. literalinclude:: 5_app/app.py
+   :pyobject: Rectangle.render
 
 Domains
 -------
 Domains have been introduced into Sphinx to make it available for other languages than just Python.
 Domains can provide custom indeces (like the Python module). 
 
-.. py:function:: spam(eggs)
+.. function:: spam(eggs)
                  ham(eggs)
 
    Spam or ham the foo.
 
-.. py:function:: filterwarnings(action, message)
+.. function:: filterwarnings(action, message)
    :noindex:
 
 The function :py:func:`spam` does a similar thing.
@@ -149,16 +269,14 @@ products this result::
 The math domain
 ---------------
 
+Since Pythagoras, we know that :math:`a^2 + b^2 = c^2`.
+
 .. math:: e^{i\pi} + 1 = 0
    :label: euler
 
 Euler's identity, equation :math:numref:`euler`, was elected one of the
 most beautiful mathematical formulas.
 
-html_sidebars = {
-   '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html'],
-   'using/windows': ['windowssidebar.html', 'searchbox.html'],
-   }
 
 The pygamelib module
 --------------------
