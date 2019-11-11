@@ -49,6 +49,9 @@ DBG_EVENTS = 1
 DBG_LABELS = 2
 DBG_OUTLINE = 4
 
+DBL_CLICK_TIMER = pygame.USEREVENT
+DBL_CLICK_TIMEOUT = 200
+
 class App:
     """Create a single-window app with multiple scenes having multiple objects."""
     scenes = []     # scene list
@@ -124,9 +127,6 @@ class App:
 
         pygame.quit()
 
-    def multi_click(self):
-        """Detect double and triple clicks"""
-
     def next_scene(self, d=1):
         """Switch to the next scene."""
         i = App.scenes.index(App.scene)
@@ -196,6 +196,9 @@ class Scene:
         App.scenes.append(self)
         App.scene = self
         self.nodes = []
+
+        self.clicks = 0  # for double-clicks
+        self.text = ''   # for copy/paste
 
         # Reset Node options to default
         Node.options = Node.options0.copy()
@@ -287,6 +290,9 @@ class Scene:
                 exec(self.shortcuts[k, m])
 
         if event.type == MOUSEBUTTONDOWN:
+            pygame.time.set_timer(DBL_CLICK_TIMER, DBL_CLICK_TIMEOUT)
+            self.clicks += 1
+
             if self.selection_rect.collidepoint(event.pos):
                 self.moving = True
             else:
@@ -333,6 +339,18 @@ class Scene:
                 for x in self.selection[1:]:
                     self.selection_rect.union_ip(x.rect)
                 self.selection_rect.inflate_ip((4, 4))
+
+        elif event.type == DBL_CLICK_TIMER:
+            pygame.time.set_timer(DBL_CLICK_TIMER, 0)
+            print(self.clicks, 'clicks in', self.focus)
+            
+            if self.focus:
+                if self.clicks == 2:
+                    self.focus.double_click()
+                elif self.clicks == 3:
+                    self.focus.triple_click()
+
+            self.clicks = 0
         
         if self.focus != None:
             self.focus.do_event(event)
@@ -349,24 +367,25 @@ class Scene:
 
     def cut(self):
         """Cuts the selected objects and places them in App.selection."""
-        App.focus = self.focus
-        self.nodes.remove(self.focus)
-        self.focus = None
+        App.selection = self.selection
+        for x in self.selection:
+            self.nodes.remove(x)
+        self.selection = []
 
     def copy(self):
         """Copies the selected objects and places them in App.selection."""
-        App.focus = self.focus
+        App.selection = self.selection
 
     def paste(self):
         """Pastes the objects from App.selection."""
         print('paste')
-        obj = App.focus
-        obj2 = eval(type(obj).__name__+'()')
-        obj2.rect = obj.rect.copy()
-        #®obj2.__dict__.update(obj.__dict__)
-        obj2.rect.topleft = pygame.mouse.get_pos()
-        obj2.label_rect.bottomleft = pygame.mouse.get_pos()
-        self.nodes.append(obj2)
+        # obj = App.focus
+        # obj2 = eval(type(obj).__name__+'()')
+        # obj2.rect = obj.rect.copy()
+        # #®obj2.__dict__.update(obj.__dict__)
+        # obj2.rect.topleft = pygame.mouse.get_pos()
+        # obj2.label_rect.bottomleft = pygame.mouse.get_pos()
+        # self.nodes.append(obj2)
 
     def debug(self):
         """Print all scene/node options."""
@@ -408,7 +427,6 @@ class Node:
     outline = Color('red'), 1
     focus = Color('blue'), 1
     selection = Color('green'), 2
-    dbl_click_time = 300
 
     # key direction vectors
     dirs = {K_LEFT:(-1, 0), K_RIGHT:(1, 0), K_UP:(0, -1), K_DOWN:(0, 1)}
@@ -422,8 +440,6 @@ class Node:
         # create instance attributes from current class options
         self.__dict__ = Node.options.copy()
         Node.options['id'] += 1
-        self.t0 = 0
-        self.t1 = 0
         
         self.calculate_pos(options)
         self.rect = Rect(*self.pos, *self.size)
@@ -491,15 +507,6 @@ class Node:
         mods = pygame.key.get_mods()
 
         if event.type == MOUSEBUTTONDOWN:
-            # detect double click
-            t = pygame.time.get_ticks()
-            if t - self.t1 < Node.dbl_click_time:
-                self.triple_click()
-            elif t- self.t0 < Node.dbl_click_time:
-                self.double_click()
-            self.t1 = self.t0
-            self.t0 = t
-
             # click in resize button
             r = Rect(0, 0, 7, 7)
             r.bottomright = self.rect.bottomright
@@ -656,61 +663,197 @@ class Text(Node):
 
 class TextEdit(Text):
     """Text with movable cursor to edit the text."""
+
+    cursor = Color('red'), 2  # cursor color and width
+    cursor_blink = 600, 400   # interval, on_time
+    text_selection = Color('pink')  # selection color
+
     def __init__(self, text='TextEdit', cmd='', **options):
         super().__init__(text=text, cmd=cmd, **options)
 
-        self.cursor_pos = len(self.text)
-        self.cursor_img = pygame.Surface((2, self.rect.height))
-        self.cursor_img.fill(Color('red'))
+        col, d = TextEdit.cursor
+        self.cursor = len(self.text)
+        self.cursor_img = pygame.Surface((d, self.rect.height))
+        self.cursor_img.fill(col)
         self.cursor_rect = self.cursor_img.get_rect()
         self.cursor_rect.topleft = self.rect.topright
+        self.cursor2 = self.cursor
+
+        self.set_char_positions()
+        self.render_cursor()
+
+    def set_char_positions(self):
+        """Get a list of all character positions."""
+        self.char_positions = [0]
+        for i in range(len(self.text)):
+            w, h = self.font.size(self.text[:i+1])
+            self.char_positions.append(w)
+    
+    def get_char_index(self, position):
+        """Return the character index for a given position."""
+        for i, pos in enumerate(self.char_positions):
+            if position <= pos:
+                return i
+        # if not found return the highest index
+        return i
+
+    def move_cursor(self, d):
+        """Move the cursor by d charactors, and limit to text length."""
+        mod = pygame.key.get_mods()
+        n = len(self.text)
+        i = min(max(0, self.cursor+d), n)
+
+        if mod & KMOD_META:
+            if d == 1:
+                i = n
+            else:
+                i = 0
+
+        if mod & KMOD_ALT:
+            while (0 < i < n) and self.text[i] != ' ':
+                i += d
+
+        if not mod & KMOD_SHIFT:
+            self.cursor2 = i
+
+        self.cursor = i
+
+    def get_selection_indices(self):
+        """Get ordered tuple of selection indicies."""
+        i = self.cursor
+        i2 = self.cursor2
+        
+        if i < i2:
+            return i, i2
+        else:
+            return i2, i 
+
+    def copy_text(self):
+        """Copy text to Scene.text buffer."""
+        i, i2 = self.get_selection_indices()
+        text = self.text[i:i2]
+        App.scene.text = text
+        print('copy', text)
+
+    def cut_text(self):
+        """Cut text and place copy in Scene.text buffer."""
+        self.copy_text()
+        self.insert_text('')
+
+    def insert_text(self, text):
+        """Insert text at the cursor position or replace selection."""
+        i, i2 = self.get_selection_indices()
+        text1 = self.text[:i]
+        text2 = self.text[i2:]
+        self.text = text1 + text + text2
+        self.cursor = i + len(text)
+        self.cursor2 = self.cursor
 
     def do_event(self, event):
-        """Move cursor left/right, add/backspace text."""
-        #Node.do_event(self, event)
+        """Move cursor, handle selection, add/backspace text, copy/paste."""
         if event.type == KEYDOWN:
             if event.key == K_RETURN:
                 App.scene.focus = None
                 exec(self.cmd)
+
             elif event.key == K_BACKSPACE:
-                t0 = self.text[:self.cursor_pos-1]
-                t1 = self.text[self.cursor_pos:]
-                self.text = t0 + t1
-                self.cursor_pos = max(0, self.cursor_pos-1)
-            elif event.key in (K_TAB, K_UP, K_DOWN):
+                if self.cursor == self.cursor2:
+                    self.cursor = max(0, self.cursor-1)
+                self.insert_text('')
+
+            elif event.key in (K_TAB, K_UP, K_DOWN, K_LCTRL, K_LMETA):
                 pass
+            
             elif event.key == K_LEFT:
-                self.cursor_pos = max(0, self.cursor_pos-1)
-                
+                self.move_cursor(-1)
+            
             elif event.key == K_RIGHT:
-                self.cursor_pos = min(len(self.text), self.cursor_pos+1)
+                self.move_cursor(1)
 
             elif not (event.mod & KMOD_META + KMOD_CTRL):
-                t0 = self.text[:self.cursor_pos]
-                t1 = self.text[self.cursor_pos:]
-                self.text = t0 + event.unicode + t1
-                self.cursor_pos += 1
+                self.insert_text(event.unicode)
+
+            elif event.key == K_x and event.mod & KMOD_META:
+                self.cut_text()
+
+            elif event.key == K_c and event.mod & KMOD_META:
+                self.copy_text()
+
+            elif event.key == K_v and event.mod & KMOD_META:
+                self.insert_text(App.scene.text)
 
             self.render()
 
-        if event.type == MOUSEBUTTONDOWN:
-            for i in range(len(self.text+' ')):
-                txt = self.text[:i]
-                w, h = self.font.size(self.text[:i])
-                if w+3 > (event.pos[0] - self.rect.left):
-                    break
-            self.cursor_pos = i
+        elif event.type == MOUSEBUTTONDOWN:
+            pos = event.pos[0] - self.rect.left
+            if pos < 3:
+                pos = 0
 
-        w, h = self.font.size(self.text[:self.cursor_pos])
-        self.cursor_rect = self.rect.move((w, 0))
+            i = self.get_char_index(pos)
+            self.cursor = i
+            if not pygame.key.get_mods() & KMOD_SHIFT:
+                self.cursor2 = i
 
+        elif event.type == MOUSEMOTION and event.buttons[0]:
+            pos = event.pos[0] - self.rect.left
+            if pos < 3:
+                pos = 0 
 
+            i = self.get_char_index(pos)
+            self.cursor = i
+
+        self.render_cursor()
+
+    def render_cursor(self):
+        """Render the cursor and selection image."""
+        i = self.cursor
+        i2 = self.cursor2
+        
+        self.set_char_positions()
+        p = self.char_positions[i]
+        p2 = self.char_positions[i2]
+
+        self.cursor_rect.left = self.rect.left + p
+
+        if p2 < p:
+            p, p2 = p2, p
+        
+        self.selection_rect = self.rect.copy()
+        self.selection_rect.left = self.rect.left + p 
+        self.selection_rect.width = p2-p
+
+        col = TextEdit.text_selection
+        self.selection_img = pygame.Surface((p2-p+1, self.rect.height))
+        self.selection_img.fill(col)
+
+        
     def draw(self):
+        App.screen.blit(self.selection_img, self.selection_rect)
         Node.draw(self)
         if self == App.scene.focus:
             t = pygame.time.get_ticks()
-            if (t % 600) > 300:
+            interval, on_time = TextEdit.cursor_blink
+            if (t % interval) < on_time:
                 App.screen.blit(self.cursor_img, self.cursor_rect)
+
+    def double_click(self):
+        """Select the current word."""
+        i = i2 = self.cursor
+        n = len(self.text)
+
+        while (0 < i < n) and self.text[i] != ' ':
+                i -= 1
+        
+        while (0 < i2 < n) and self.text[i2] != ' ':
+                i2 += 1
+
+        self.cursor = i2
+        self.cursor2 = i+1 if self.text[i]==' ' else i
+
+    def triple_click(self):
+        """Select the whole text."""
+        self.cursor = len(self.text)
+        self.cursor2 = 0
 
 class TextList(Node):
   
@@ -1285,8 +1428,11 @@ if __name__ == '__main__':
     b.Num = np.arange(16).reshape((4, 4))
     b.render()
 
-    app.run()
+    Scene(caption='TextEdit - editable text')
+    TextEdit('Elle', autosize=True)
+    TextEdit('Edit this text with the cursor')
 
+    app.run()
 """
 class Num(nparray) - add more functions
 class Graph - points, links (Mill)

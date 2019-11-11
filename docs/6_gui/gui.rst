@@ -109,6 +109,14 @@ Which produces the following result:
 
 .. image:: text3.png
 
+Editable text
+-------------
+
+The class :class:`TextEdit` provides editable text with a movable cursor.
+The 
+
+
+
 
 Buttons
 -------
@@ -125,3 +133,42 @@ The TextList class displays a list of items. One item can be selected with
 a mouse-click or with the UP/DOWN arrow keys. Pressing the RETURN key executes the command.
 
 .. image:: textlist1.png
+
+
+Detecting double-clicks
+-----------------------
+
+In order to detect double-clicks or multiple clicks we need to use a timer event.
+The reason for using a timer is that we cannot know at the time of a mouse click
+if there are more clicks to follow. We only know for sure after a short timeout period.
+So we define a new event as the first USEREVENT::
+
+    DBL_CLICK_TIMER = pygame.USEREVENT
+    DBL_CLICK_TIMEOUT = 250
+
+Inside the ``Scene.do_event()`` we look for a MOUSEBUTTONDOWN event 
+and we set a timer and increment the clicks.
+
+    if event.type == MOUSEBUTTONDOWN:
+        pygame.time.set_timer(DBL_CLICK_TIMER, DBL_CLICK_TIMEOUT)
+        self.clicks += 1
+
+Once the timeout occurs, we 
+- reset (disable) the timer
+- print the number of clicks and
+- reset the click count to zero::
+
+    elif event.type == DBL_CLICK_TIMER:
+        pygame.time.set_time(DBL_CLICK_TIMER, 0)
+        print(self.clicks, 'clicks in', self.focus)
+        self.clicks = 0
+
+The text printed to the console looks like this:
+
+.. code-block:: none
+
+    2 clicks in Text0
+    4 clicks in Text0
+    3 clicks in Ellipse1
+    1 clicks in Rectangle2
+    2 clicks in None
