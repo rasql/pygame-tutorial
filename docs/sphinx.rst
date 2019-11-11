@@ -20,16 +20,15 @@ After installation, you can get started quickly with the tool
 
    sphinx-quickstart
 
-Answer each question. Be sure to say *yes* to the **autodoc** extension.
-This creates a directory with several documents:
+Answer each customization question with yes or no. Be sure to say **yes** to the **autodoc** extension.
+The :program:`sphinx-quickstart` creates a directory with several documents:
 
-- :file:`conf.py` file, the default configuration file
-- :file:`index.rst` file, the master document
+- :file:`conf.py` file, the *default configuration file*
+- :file:`index.rst` file, the *master document*
 
 The :file:`conf.py` file let's you configure all aspects of Sphinx.
 The :file:`index.rst` is the entry page for your documentation.
-
-The ``toctree`` directive determines the files to include. 
+It contains the ``toctree`` directive which determines the files to include. 
 For this project it looks like this::
 
    .. toctree::
@@ -45,7 +44,7 @@ To build the HTML pages just run::
 
    make html
 
-To make the PDF document just run::
+To make the PDF document run::
 
    make pdf
 
@@ -53,6 +52,7 @@ reStructuredText
 ----------------
 
 reStructuredText (.rst) is the default markup language used with Sphinx.
+It is important to know that:
 
 - paragraphs are separated by one or more blank lines
 - indentation is significant
@@ -60,9 +60,11 @@ reStructuredText (.rst) is the default markup language used with Sphinx.
 Inline styles
 ^^^^^^^^^^^^^
 
+Inside text you can use:
+
 - one asterisk for *italics*
 - two asterisks for **bold**
-- backquotes for ``code```
+- backquotes for ``code``
 
 Lists
 ^^^^^
@@ -109,17 +111,10 @@ Admonitions
 .. warning::
    Be careful with this code!
 
-A directive consists of
-
-- name
-- arguments
-- options
-- content
-
 Footnotes
 ^^^^^^^^^
 
-This is a footnote [#f1]_ inside a text, tis is another one [#f2]_.
+This is a footnote [#f1]_ inside a text, this is another one [#f2]_.
 
 .. rubric:: Footnotes
 
@@ -128,6 +123,14 @@ This is a footnote [#f1]_ inside a text, tis is another one [#f2]_.
 
 Horizontal list
 ^^^^^^^^^^^^^^^
+
+To add a horizontal list add this code::
+
+   .. hlist::
+      :columns: 3
+
+      * happy
+      ...
 
 .. hlist::
    :columns: 3
@@ -144,10 +147,14 @@ Horizontal list
 Download
 ^^^^^^^^
 
-:download:`this example script <requirements.txt>`.
+To add a download link add this code::
 
-Include part of a file
-----------------------
+   :download:`requirements.txt<requirements.txt>`.
+
+:download:`requirements.txt<requirements.txt>`.
+
+Include from a file
+-------------------
 
 It is possible to include a Python object (class, method) from a file. 
 For example you can include a **class** definition with::
@@ -174,58 +181,69 @@ resulting in
 .. literalinclude:: 5_app/app.py
    :pyobject: Rectangle.render
 
-Domains
--------
-Domains have been introduced into Sphinx to make it available for other languages than just Python.
-Domains can provide custom indeces (like the Python module). 
+Directives
+----------
+
+A directive consists of
+
+- name
+- arguments
+- options
+- content
+
+The structure is this::
+
+   .. name:: arguments
+      :option: value
+
+      content
+
+Function
+^^^^^^^^
+
+This directive defines a function::
+
+   .. function:: spam(eggs)
+                  ham(eggs)
+
+      Spam ham ham the are made with a certain number of eggs.
 
 .. function:: spam(eggs)
                  ham(eggs)
 
-   Spam or ham the foo.
+   Spam and ham the are made with a certain number of eggs.
 
-.. function:: filterwarnings(action, message)
-   :noindex:
 
-The function :py:func:`spam` does a similar thing.
+To cross-reference you can use:
+ 
+- :meth:`method_name` with ``:meth:`method_name```
+- :class:`class_name` with ``:class:`class_name```
+- :func:`function_name` with ``:func:`function_name```
 
-The class :class:`App` is always used to subclass a game application.
-
-.. function:: pyfunc()
-
-   Describes a Python function.
-
-Reference to :func:`pyfunc` inmidst of text.
-
-Cross-referencing syntax
-------------------------
-
-:meth:`~Queue.Queue.get` 
+For example with ``:func:`spam``` one can refernce 
+the above functions :func:`spam` or :func:`ham` inside a sentence..
 
 .. :module:: pygamelib
 
-Directives
-----------
 
-This code::
+Data
+^^^^
 
-   .. function:: Timer.repeat(repeat=3, number=1000)
+To describe global data and constants in a module use this code::
 
-      Descripe the function.
+   .. data:: number=1000
 
-products this result::
+      Describe data.
 
-.. function:: Timer.repeat(repeat=3, number=1000)
-
-   Descripe the function.
-
-.. method:: Timer.repeat(repeat=3, number=1000)
-
-   Describe a method.
+produces
 
 .. data:: number=1000
 
    Describe data.
+
+
+Class
+^^^^^
 
 .. class:: App
 
@@ -244,7 +262,10 @@ products this result::
    Global class attribute.
 
 
-.. py:function:: send_message(sender, recipient, message_body, [priority=1])
+Functions with arguments
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. function:: send_message(sender, recipient, message_body, [priority=1])
 
    Send a message to a recipient
 
@@ -258,16 +279,9 @@ products this result::
    :raises ValueError: if the message_body exceeds 160 characters
    :raises TypeError: if the message_body is not a basestring
 
-   :type priorities: list(int)
-   :type priorities: list(int)
-   :type priorities: list[int]
-   :type mapping: dict(str, int)
-   :type mapping: dict[str, int]
-   :type point: tuple(float, float)
-   :type point: tuple[float, float]
 
-The math domain
----------------
+Math formulas
+-------------
 
 Since Pythagoras, we know that :math:`a^2 + b^2 = c^2`.
 
@@ -278,18 +292,25 @@ Euler's identity, equation :math:numref:`euler`, was elected one of the
 most beautiful mathematical formulas.
 
 
-The pygamelib module
---------------------
-
-Classes are listed in alphabetical order.
-
-.. automodule:: pygamelib
-   :members:
-   :member-order: bysource
-
-The App class
+The app module
 --------------
 
-.. autoclass:: pygamelib.App
+This code::
+
+   .. automodule:: app
+      :members:
+      :member-order: bysource
+
+Prints the whole app documentation and lists members by source order.
+
+.. automodule:: app
    :members:
    :member-order: bysource
+
+Glossary
+--------
+
+.. glossary::
+   
+   reStructuredText
+      reStructedText is ligh-weight markup langage. 

@@ -15,23 +15,24 @@ running = True
 
 module = sys.modules['__main__']
 path, name = os.path.split(module.__file__)
-path = os.path.join(path, '../animals/bird-icon.png')
+path = os.path.join(path, 'bird.png')
 
-original = pygame.image.load(path)
-original.convert()
+img0 = pygame.image.load(path)
+img0.convert()
 
-rect0 = original.get_rect()
-pygame.draw.rect(original, GREEN, rect0, 1)
+# draw a green border around img0
+rect0 = img0.get_rect()
+pygame.draw.rect(img0, GREEN, rect0, 1)
 
-img = original
 center = w//2, h//2
-mouse = center
-
+img = img0
 rect = img.get_rect()
 rect.center = center
 
 angle = 0
 scale = 1
+
+mouse = pygame.mouse.get_pos()
 
 while running:
     for event in pygame.event.get():
@@ -44,17 +45,17 @@ while running:
                     angle -= 10
                 else:
                     angle += 10
-                img = pygame.transform.rotozoom(original, angle, scale)
+                img = pygame.transform.rotozoom(img0, angle, scale)
 
             elif event.key == K_s:
                 if event.mod & KMOD_SHIFT:
                     scale /= 1.1
                 else:
                     scale *= 1.1
-                img = pygame.transform.rotozoom(original, angle, scale)
+                img = pygame.transform.rotozoom(img0, angle, scale)
 
             elif event.key == K_o:
-                img = original
+                img = img0
                 angle = 0
                 scale = 1
 
@@ -81,7 +82,7 @@ while running:
 
             angle = math.degrees(-math.atan2(y, x))
             scale = abs(5 * d / w)
-            img = pygame.transform.rotozoom(original, angle, scale)
+            img = pygame.transform.rotozoom(img0, angle, scale)
             rect = img.get_rect()
             rect.center = center
     

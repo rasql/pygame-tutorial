@@ -68,42 +68,43 @@ class App:
         App.screen = pygame.display.set_mode(self.rect.size, self.flags)
         App.root = self
 
-        self.shortcuts = {(K_ESCAPE, KMOD_NONE): 'App.running=False',
-                          (K_q, KMOD_LMETA): 'App.running=False',
-                          (K_f, KMOD_LMETA): 'self.toggle_fullscreen()',
-                          (K_r, KMOD_LMETA): 'self.toggle_resizable()',
-                          (K_g, KMOD_LMETA): 'self.toggle_frame()',
-                          
-                          (K_h, KMOD_LMETA): 'pygame.display.iconify()',
-                          (K_p, KMOD_LMETA): 'self.capture()',
-                          (K_s, KMOD_LMETA): 'self.next_scene()',
-                          (K_s, KMOD_LMETA+KMOD_LSHIFT): 'self.next_scene(-1)',
-                          (K_TAB, KMOD_NONE): 'App.scene.next_focus()',
-                          (K_TAB, KMOD_LSHIFT): 'App.scene.next_focus(-1)',
+        self.shortcuts = {
+            (K_ESCAPE, KMOD_NONE): 'App.running=False',
+            (K_q, KMOD_LMETA): 'App.running=False',
+            (K_f, KMOD_LMETA): 'self.toggle_fullscreen()',
+            (K_r, KMOD_LMETA): 'self.toggle_resizable()',
+            (K_g, KMOD_LMETA): 'self.toggle_frame()',
+            
+            (K_h, KMOD_LMETA): 'pygame.display.iconify()',
+            (K_p, KMOD_LMETA): 'self.capture()',
+            (K_s, KMOD_LMETA): 'self.next_scene()',
+            (K_s, KMOD_LMETA+KMOD_LSHIFT): 'self.next_scene(-1)',
+            (K_TAB, KMOD_NONE): 'App.scene.next_focus()',
+            (K_TAB, KMOD_LSHIFT): 'App.scene.next_focus(-1)',
 
-                          (K_e, KMOD_LCTRL): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
-                          (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
-                          (K_r, KMOD_LCTRL): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
-                          (K_t, KMOD_LCTRL): 'Text(pos=pygame.mouse.get_pos())',
+            (K_e, KMOD_LCTRL): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
+            (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
+            (K_r, KMOD_LCTRL): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
+            (K_t, KMOD_LCTRL): 'Text(pos=pygame.mouse.get_pos())',
 
-                          (K_x, KMOD_LMETA): 'print("cmd+X")',
-                          (K_x, KMOD_LALT): 'print("alt+X")',
-                          (K_x, KMOD_LCTRL): 'print("ctrl+X")',
-                          (K_x, KMOD_LMETA + KMOD_LSHIFT): 'print("cmd+shift+X")',
-                          (K_x, KMOD_LMETA + KMOD_LALT): 'print("cmd+alt+X")',
-                          (K_x, KMOD_LMETA + KMOD_LALT + KMOD_LSHIFT): 'print("cmd+alt+shift+X")',
-                         
-                          (K_x, KMOD_LMETA): 'App.scene.cut()',
-                          (K_c, KMOD_LMETA): 'App.scene.copy()',
-                          (K_v, KMOD_LMETA): 'App.scene.paste()',
+            (K_x, KMOD_LMETA): 'print("cmd+X")',
+            (K_x, KMOD_LALT): 'print("alt+X")',
+            (K_x, KMOD_LCTRL): 'print("ctrl+X")',
+            (K_x, KMOD_LMETA + KMOD_LSHIFT): 'print("cmd+shift+X")',
+            (K_x, KMOD_LMETA + KMOD_LALT): 'print("cmd+alt+X")',
+            (K_x, KMOD_LMETA + KMOD_LALT + KMOD_LSHIFT): 'print("cmd+alt+shift+X")',
+            
+            (K_x, KMOD_LMETA): 'App.scene.cut()',
+            (K_c, KMOD_LMETA): 'App.scene.copy()',
+            (K_v, KMOD_LMETA): 'App.scene.paste()',
 
-                          (K_e, KMOD_LMETA): 'App.debug ^= DBG_EVENTS',
-                          (K_l, KMOD_LMETA): 'App.debug ^= DBG_LABELS',
-                          (K_o, KMOD_LMETA): 'App.debug ^= DBG_OUTLINE',
+            (K_e, KMOD_LMETA): 'App.debug ^= DBG_EVENTS',
+            (K_l, KMOD_LMETA): 'App.debug ^= DBG_LABELS',
+            (K_o, KMOD_LMETA): 'App.debug ^= DBG_OUTLINE',
 
-                          (K_d, KMOD_LMETA): 'App.scene.focus.debug()',
-                          
-                          }
+            (K_d, KMOD_LMETA): 'App.scene.debug()',
+            }
+        # update shortcuts with the argument
         self.shortcuts.update(shortcuts)
 
     def run(self):
@@ -122,6 +123,9 @@ class App:
             App.scene.draw()
 
         pygame.quit()
+
+    def multi_click(self):
+        """Detect double and triple clicks"""
 
     def next_scene(self, d=1):
         """Switch to the next scene."""
@@ -364,6 +368,13 @@ class Scene:
         obj2.label_rect.bottomleft = pygame.mouse.get_pos()
         self.nodes.append(obj2)
 
+    def debug(self):
+        """Print all scene/node options."""
+        obj = self.focus if self.focus else self
+        print('===', obj, '===')
+        for k, v in obj.__dict__.items():
+            print(k, '=', v)
+
     def __str__(self):
         return f'Scene{self.id}'
 
@@ -379,10 +390,7 @@ class Node:
                 'id': 0,
                 'file': '',
                 'bg': None,
-                'border_thick': 0,
-                'border_col': None,
                 'img': None,
-                'time': 0,  # for double-click
                 'cmd': '',  # command string
 
                 'visible': True,
@@ -400,7 +408,7 @@ class Node:
     outline = Color('red'), 1
     focus = Color('blue'), 1
     selection = Color('green'), 2
-    dbl_click_time = 200
+    dbl_click_time = 300
 
     # key direction vectors
     dirs = {K_LEFT:(-1, 0), K_RIGHT:(1, 0), K_UP:(0, -1), K_DOWN:(0, 1)}
@@ -414,30 +422,52 @@ class Node:
         # create instance attributes from current class options
         self.__dict__ = Node.options.copy()
         Node.options['id'] += 1
+        self.t0 = 0
+        self.t1 = 0
         
         self.calculate_pos(options)
         self.rect = Rect(*self.pos, *self.size)
-        self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
         
         App.scene.nodes.append(self)
         self.render_label()
 
+        self.create_img()
+        self.color_img()
         if self.file != '':
-            module = sys.modules['__main__']
-            path, name = os.path.split(module.__file__)
-            path = os.path.join(path, self.file)
-            
-            self.img0 = pygame.image.load(path)    
-            self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
-        else:
-            self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
-            if self.bg == None:
-                self.img.fill((0, 0, 0, 0))
-            else:
-                self.img.fill(self.bg)
-            if self.border_thick > 0:
-                pygame.draw.rect(self.img, self.border_col, Rect((0, 0), self.rect.size), self.border_thick)
+            self.load_img()
 
+    def create_img(self):
+        """Create the image surface, and the original img0."""
+        self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
+        self.img0 = self.img.copy()
+
+    def color_img(self):
+        """Add background color to the image."""
+        if self.bg == None:
+            self.img.fill((0, 0, 0, 0))
+        else:
+            self.img.fill(self.bg)
+        self.img0 = self.img.copy()
+    
+    def set_background(self, img):
+        """Set background color or transparency."""
+        if self.bg == None:
+            img.fill((0, 0, 0, 0))
+        else:
+            img.fill(self.bg)
+        
+    def load_img(self):
+        """Load the image file."""
+        module = sys.modules['__main__']
+        path, name = os.path.split(module.__file__)
+        path = os.path.join(path, self.file)
+        
+        img = pygame.image.load(path)
+        self.img0 = pygame.Surface(img.get_size(), flags=SRCALPHA)
+        self.set_background(self.img0)
+        self.img0.blit(img, (0, 0))
+
+        self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
 
     def calculate_pos(self, options):
         """Calculate the next node position."""
@@ -463,9 +493,12 @@ class Node:
         if event.type == MOUSEBUTTONDOWN:
             # detect double click
             t = pygame.time.get_ticks()
-            if t - self.time < Node.dbl_click_time:
+            if t - self.t1 < Node.dbl_click_time:
+                self.triple_click()
+            elif t- self.t0 < Node.dbl_click_time:
                 self.double_click()
-            self.time = t
+            self.t1 = self.t0
+            self.t0 = t
 
             # click in resize button
             r = Rect(0, 0, 7, 7)
@@ -484,6 +517,7 @@ class Node:
                 else:
                     self.rect.width += dx
                     self.rect.height += dy
+                self.rect.normalize()
                 #if self.file != '':
                 if isinstance(self, (Ellipse, Rectangle)):
                     self.render()
@@ -534,13 +568,12 @@ class Node:
                 pygame.draw.rect(App.screen, Node.focus[0], r, Node.focus[1])
     
     def double_click(self):
+        App.scene.set_status(f'double-click in {self}')
         print('double-click in', self)
 
-    def debug(self):
-        """Print all node options."""
-        print('===', self, '===')
-        for k, v in self.__dict__.items():
-            print(k, '=', v)
+    def triple_click(self):
+        App.scene.set_status(f'triple-click in {self}')
+        print('triple-click in', self)
 
     def __str__(self):
         return self.__class__.__name__ + str(self.id)
@@ -798,7 +831,7 @@ class Ellipse(Node):
         self.color = color
         self.color2 = color2
         self.thick = thick
-        self.render()
+        self.render()   
 
     def render(self):
         self.img0 = pygame.Surface(self.rect.size, flags=SRCALPHA)
@@ -810,29 +843,17 @@ class Ellipse(Node):
 class Button(Text):
     """Create a button object with command.""" 
     options = { 'border': 2,
+                'bg': Color('yellow'),
                 'size': (160, 40),
+                'autosize': False,
+                'v_align': 1,
+                'h_align': 1,
         }
 
-
     def __init__(self, text='Button', cmd='',  **options):
-        super().__init__(text, **options)
-        #self.__dict__.update(Button.options)
-
+        print(Button.options)
+        super().__init__(text, **Button.options)
         self.cmd = cmd
-    #     self.rect.size = 160, 40
-    #     self.button_color = Color('green')
-    #     self.render()
-
-    # def render(self):
-    #     """Create the button image with background color and centered text."""
-    #     self.img0 = pygame.Surface(self.rect.size)
-    #     self.img0.fill(Color('green'))
-    #     self.text_img = self.font.render(self.text, True, self.fontcolor, self.fontbg)
-    #     self.text_rect = self.text_img.get_rect()
-    #     self.text_rect.center = self.rect.center
-    #     self.img0.blit(self.text_img, self.text_rect)
-    #     self.img = self.img0.copy()
-    #     self.size = self.rect.size
 
     def do_event(self, event):
         super().do_event(event)
@@ -840,7 +861,7 @@ class Button(Text):
             exec(self.cmd)
 
 class Board(Node):
-    """Draw a mxn board grid with n lines and m columns.
+    """Draw a mxn board grid with m lines and n columns.
     m, n    number of cells (row, col)
     i, j    index of cell (row, col)
     dx, dy  size of cell
@@ -864,7 +885,7 @@ class Board(Node):
         'folder': '',
         'drag': False,
         'centered': False,  # grid is centered as in Go
-        'keys': '0123456789',
+        'keys': '0123456789', # keys which are accepted
     }
 
     def __init__(self, **options):
@@ -900,8 +921,16 @@ class Board(Node):
             for j in range(n):
                 self.Num[i, j] = int(lines[i][j])
         self.Num0 = self.Num.copy()
-        print(self.Num0)
         self.render()
+
+    def switch_Num(self, dir):
+        i1, j1
+        i2 = i + di
+        j2 = j + dj
+        if 0 < i2 < n:
+            tmp = self.Num[i1, j1]
+            self.Num[i1, j1] = self.Num[i2, j2]
+            self.Num[i2, j2] = tmp
 
     def set_checkerboard(self):
         self.Col = np.fromfunction(lambda i, j: (i+j)%2, (self.m, self.n), dtype='int8')
@@ -990,6 +1019,7 @@ class Board(Node):
         pygame.draw.rect(self.img, col, self.get_rect(self.i, self.j), d)
 
     def render(self):
+        """Render the whole board."""
         self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
         self.render_colors()
         self.render_grid()
@@ -1064,6 +1094,15 @@ class Board(Node):
                 self.Num[self.i, self.j] = k
                 self.render()
                 
+class Num():
+    pass
+"""
+move(dir)
+pos = find(0)
+if pos+dir exist
+    switch(pos, pos+dir)
+
+"""
 
 class Sudoku(Board):
     """Create a sudoko game board."""
@@ -1166,12 +1205,7 @@ if __name__ == '__main__':
     TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
 
     cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 'Harrington', 'Melbourne']
-    TextList(cities, dir=(1, 0))
-
-    Scene(caption='Buttons', bg=Color('beige'))
-    Text('Buttons')
-    Button('print(scene)', cmd='print(App.scene)')
-    Button('print(123)', cmd='print(123)')
+    TextList(cities, dir=(1, 0), cmd='App.scene.set_status(self.item)')
 
     Scene(caption='Node size')
     Node(size=(40, 40), dir=(1, 1))
@@ -1199,11 +1233,6 @@ if __name__ == '__main__':
     Board(dir=(1, 0), m=4, n=4)
     Board()
     Board()
-
-    Scene(caption='Board - number puzzle')
-    b = Board(m=4, n=4)
-    b.Num = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
-    b.render()
 
     Scene(caption='Board - Go')
     Go(dir=(1, 0))
@@ -1234,4 +1263,40 @@ if __name__ == '__main__':
     Scene(caption='Board - Puzzle', selection_surround=True)
     Puzzle(file='../../images/river.jpg', size=(200, 200))
 
+    Scene('Nodes with images')
+    Node(file='../animals/cat-icon.png', size=(100, 100), dir=(1, 0))
+    Node(file='../animals/dog-icon.png', bg=Color('yellow'))
+    Node(file='../animals/cow-icon.png')
+    Node(file='', bg=None)
+    
+    Scene(caption='Buttons', bg=Color('beige'))
+    Text('Buttons')
+    #Text('Text', size=(200,40), bg=Color('gray'), autosize=False, v_align=1, h_align=1, cmd='print(self, self.text)')
+    Button('print(scene)', cmd='print(App.scene)')
+    Button('print(123)', cmd='print(123)')
+    Button(file='../animals/cat-icon.png', size=(100, 100), pos=(300, 20))
+    Text('Buttons')
+    
+    Scene(caption='Board - number puzzle')
+    b = Board(m=4, n=4)
+    b.colors = (None, Color('red'))*8
+    print(b.colors)
+    b.Num = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
+    b.Num = np.arange(16).reshape((4, 4))
+    b.render()
+
     app.run()
+
+"""
+class Num(nparray) - add more functions
+class Graph - points, links (Mill)
+pts = ((0, 0), (3, 0), (6, 0), (3, 3))
+lines = [[1, 3], [3, 2]]
+Games : Pong, Snake, Asteroids, Bricks
+Games : Mines, 2048
+Chess, possible moves, protected positions
+rook, bishop, knight, queen, king, pawn
+board history, playback
+is it a solution ?
+is it an end position ?
+"""

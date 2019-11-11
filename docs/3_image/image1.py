@@ -11,7 +11,7 @@ w, h = 640, 240
 screen = pygame.display.set_mode((w, h))
 running = True
 
-img = pygame.image.load('animals/bird-icon.png')
+img = pygame.image.load('bird.png')
 img.convert()
 rect = img.get_rect()
 rect.center = w//2, h//2

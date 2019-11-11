@@ -291,4 +291,6 @@ that does a bouncing ball animation::
 
 .. image:: intro6.png
 
+:download:`ball.gif<ball.gif>`
+
 Try to understand what the program does. Then try to modify it's parameters.

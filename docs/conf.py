@@ -17,7 +17,6 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('./5_app'))
-sys.path.insert(0, os.path.abspath('./6_gui'))
 sys.path.insert(0, os.path.abspath('./tutorial3'))
 sys.path.insert(0, os.path.abspath('./tutorial4'))
 
@@ -31,7 +30,6 @@ author = 'Raphael Holzer'
 version = ''
 # The full version, including alpha/beta/rc tags
 release = '2019'
-
 
 # -- General configuration ---------------------------------------------------
 

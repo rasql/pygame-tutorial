@@ -9,8 +9,12 @@ images. The method ``load()`` loads an image from the file system
 and returns a Surface object. The method ``convert()`` optimizes the 
 image format and makes drawing faster::
 
-    img = pygame.image.load('../animals/bird-icon.png')
+    img = pygame.image.load('bird.png')
     img.convert()
+
+Download the image ``bird.png`` to the same folder where your program resides:
+
+:download:`bird.png<bird.png>`
 
 The method ``get_rect()`` returns a Rect object from an image.
 At this point only the size is set and position is placed at (0, 0).
@@ -37,8 +41,7 @@ Move the image with the mouse
 -----------------------------
 
 At the beginning of the programm we set a boolean variable ``moving`` to False.
-When the mouse button is pressed, and if the mouse position is within the boundaries
-of the image we set it to True::
+Only when the mouse button is pressed, and when the mouse position is within the image (collidepoint) we set it to True::
 
     elif event.type == MOUSEBUTTONDOWN:
         if rect.collidepoint(event.pos):
@@ -50,7 +53,7 @@ When the mouse button is released, we set it to False again::
         moving = False
 
 When the mouse moves, and the flag ``moving`` is True, then we move the image
-by the amount of relative movement::
+by the amount of relative movement (event.rel)::
 
     elif event.type == MOUSEMOTION and moving:
         rect.move_ip(event.rel)
@@ -65,17 +68,33 @@ This is the whole code:
 Rotate and Scale the image
 --------------------------
 
-The ``pygame.transform`` module provides methods for scaling, rotating and 
-flipping images.
+The ``pygame.transform`` module provides methods for **scaling, rotating and flipping** 
+images. As we are going to modify the image **img** we keep the original image
+in a variable called **img0**::
 
-First we define scale and angle::
+    img0 = pygame.image.load(path)
+    img0.convert()
+
+In order to show the image rectangle, we add a green border to the original image::
+
+    rect0 = img0.get_rect()
+    pygame.draw.rect(img0, GREEN, rect0, 1)
+
+Then we place the place the image in the center of the screen::
+
+    center = w//2, h//2
+    img = img0
+    rect = img.get_rect()
+    rect.center = center
+
+First we define the global variables **scale** and **angle**::
 
     angle = 0
     scale = 1
 
 We use the R key to increment rotation by 10 degrees and 
 (decrement if the SHIFT key is pressed). The function ``rotozoom()`` allows to combine
-rotation and scaling. We always transform the original image. Repeated rotation or scaling of 
+rotation and scaling. We always transform the orignial image (img0). Repeated rotation or scaling of 
 an image would degrade its quality::
 
     if event.type == KEYDOWN:
@@ -84,7 +103,7 @@ an image would degrade its quality::
                 angle -= 10
             else:
                 angle += 10
-            img = pygame.transform.rotozoom(original, angle, scale)
+            img = pygame.transform.rotozoom(img0, angle, scale)
 
 We use the S key to increment the scale by 10% (decrease if the SHIFT key 
 is pressed)::
@@ -94,7 +113,7 @@ is pressed)::
                 scale /= 1.1
             else:
                 scale *= 1.1
-            img = pygame.transform.rotozoom(original, angle, scale)
+            img = pygame.transform.rotozoom(img0, angle, scale)
 
 As the image is transformed the bounding rectangle changes size. It must be 
 recalulated and placed at the center again::
@@ -109,7 +128,7 @@ Reset the image to the original
 We use the O key to reset the image to its original state::
 
     elif event.key == K_o:
-        img = original
+        img = img0
         angle = 0
         scale = 1
 
@@ -151,7 +170,11 @@ At the beginning we import the ``math`` module::
 
     import math
 
-We store the mouse position as ``mouse`` and calculate the **x, y** coordinates 
+At the beginning we store the initial mouse position::
+
+    mouse = pygame.mouse.get_pos()
+
+When the mouse moves we update the mouse position ``mouse`` and calculate the **x, y** coordinates 
 from the center of the image. 
 We also calculate the center-mouse distance **d** ::
 
@@ -167,7 +190,7 @@ scale argument::
 
         angle = math.degrees(-math.atan2(y, x))
         scale = abs(5 * d / w)
-        img = pygame.transform.rotozoom(original, angle, scale)
+        img = pygame.transform.rotozoom(img0, angle, scale)
         rect = img.get_rect()
         rect.center = center
 
