@@ -62,15 +62,17 @@ class App:
     selection = None # list of selected objects (cut/copy/paste)
     root = None
     debug = DBG_LABELS + DBG_OUTLINE
+    key_repeat = 200, 100
 
     def __init__(self, size=(640, 240), shortcuts={}):
         """Initialize pygame and the application."""
         pygame.init()
+        pygame.key.set_repeat(*App.key_repeat)
         self.flags = 0  # RESIZABLE, FULLSCREEN, NOFRAME
         self.rect = Rect(0, 0, *size)
         App.screen = pygame.display.set_mode(self.rect.size, self.flags)
         App.root = self
-
+        
         self.shortcuts = {
             (K_ESCAPE, KMOD_NONE): 'App.running=False',
             (K_q, KMOD_LMETA): 'App.running=False',
@@ -733,7 +735,6 @@ class TextEdit(Text):
         i, i2 = self.get_selection_indices()
         text = self.text[i:i2]
         App.scene.text = text
-        print('copy', text)
 
     def cut_text(self):
         """Cut text and place copy in Scene.text buffer."""
@@ -855,54 +856,138 @@ class TextEdit(Text):
         self.cursor = len(self.text)
         self.cursor2 = 0
 
-class TextList(Node):
-  
+class ListBox(Node):
+    """Show a list of text items."""
+
+    options = { 'm': 10,    # listbox height
+                'width': 100,
+                'wrap': False,
+                'align': 0,  # 0=left, 1=center, 2=right
+                'mode': 1,   # 0=none, 1=one, 2=multiple selection
+                'style': (Color('black'), Color('white')),
+                'sel_style': (Color('white'), Color('blue'))
+    }
+
     def __init__(self, items, i=0, **options):
         super().__init__(**options)
 
-        self.items = items
-        self.i = i
-        self.n = len(items)
+        # update existing ListBox options, without adding new ones
+        for k in options:
+            if k in ListBox.options:
+                ListBox.options[k] = options[k]
 
-        
+        self.__dict__.update(ListBox.options)
+
+        self.set_list(items)
+
         self.font = pygame.font.Font(None, 24)
         self.h = self.font.size('')[1]
-        self.img_sel = pygame.Surface((100, self.h))
+        self.img_sel = pygame.Surface((self.width, self.h))
         self.img_sel.fill(Color('gray'))
         self.render()
+
+    def set_list(self, items):
+        """Set items and selection list."""
+        self.i = 0
+        self.i0 = 0     # first ListBox item
+        self.i2 = 0     # cursor
+        self.items = items
+        self.n = len(items)
+        self.sel = [0] * self.n
         
     def render(self):
+        w0 = self.width
         self.item = self.items[self.i]
-        self.img0 = pygame.Surface((100, self.n * self.h))
+        self.img0 = pygame.Surface((w0, self.m * self.h))
         self.rect.size = self.img0.get_size()
-        self.img0.fill(Color('white'))
-        self.img0.blit(self.img_sel, (0, self.i * self.h))
-        for i in range(self.n):
-            text = self.font.render(self.items[i], True, Color('black'))
+        
+        for i in range(min(self.m, self.n)):
+            if self.sel[self.i0 + i]:
+                fg, bg = self.sel_style
+            else:
+                fg, bg = self.style
+
+            text = self.font.render(self.items[self.i0 + i], True, fg)
             w, h = text.get_size()
-            self.img0.blit(text, ((100-w)/2, i*h))
+            x = (0, (w0-w)//2, w0-w)[self.align]
+            self.img_sel.fill(bg)
+            self.img0.blit(self.img_sel, (0, i * self.h))
+            self.img0.blit(text, (x, i*h))
         self.img = self.img0.copy()
 
-    def draw(self):
-        Node.draw(self)
+    def move_cursor(self, d):
+        """Move the active cell up or down."""
+        mod = pygame.key.get_mods()
+        i, n = self.i, self.n
+
+        # when ALT pressed move a screenful
+        if mod & KMOD_ALT:
+            d *= self.m-1
+
+        if self.wrap:
+            i = (i + d) % n
+        else:
+            i = max(0, min(i+d, n-1))
+        
+        # adjust visible part
+        if i < self.i0:
+            self.i0 = i
+        elif i >= self.i0 + self.m:
+            self.i0 = i - self.m + 1
+
+        # when ALT pressed move to begin or end
+        if mod & KMOD_META:
+            if d == 1:
+                i = n - 1
+                self.i0 = max(0, n - self.m)
+            else:
+                i = 0
+                self.i0 = 0
+
+        self.i = i
+
+    def select(self, i):
+        mod = pygame.key.get_mods()
+        if self.mode == 1:
+            self.select_all(0)
+            self.sel[i] = 1
+        elif self.mode == 2:
+            if not mod & KMOD_META:
+                self.select_all(0)
+            self.sel[i] = 1 - self.sel[i]
+
+    def select_all(self, val):
+         for i in range(self.n):
+            self.sel[i] = val
 
     def do_event(self, event):
         if event.type == MOUSEBUTTONDOWN:
-            x, y = event.pos
-            x -= self.rect.left
-            y -= self.rect.top
-            self.i = y // self.h
-            self.render()
-        if event.type == KEYDOWN:
+            if event.button == 1:
+                x, y = event.pos
+                x -= self.rect.left
+                y -= self.rect.top
+                i = y // self.h + self.i0
+                i = min(i, self.n-1)
+                self.select(i)
+
+            elif event.button == 4:
+                self.move_cursor(1)
+            elif event.button == 5:
+                self.move_cursor(-1)
+        
+        elif event.type == KEYDOWN:
             if event.key == K_DOWN:
-                self.i = (self.i + 1) % self.n
+                self.move_cursor(1)
             elif event.key == K_UP:
-                self.i = (self.i - 1) % self.n
+                self.move_cursor(-1)    
             elif event.key == K_RETURN:
                 exec(self.cmd)
-            self.render()
+            elif event.key == K_a:
+                if event.mod & KMOD_META:
+                    self.select_all(1)
+                   
+        self.render()
             
-                
     
 class TextMenu(Text):
     """Select a text item from an items list."""
@@ -1066,14 +1151,14 @@ class Board(Node):
         self.Num0 = self.Num.copy()
         self.render()
 
-    def switch_Num(self, dir):
-        i1, j1
-        i2 = i + di
-        j2 = j + dj
-        if 0 < i2 < n:
-            tmp = self.Num[i1, j1]
-            self.Num[i1, j1] = self.Num[i2, j2]
-            self.Num[i2, j2] = tmp
+    # def switch_Num(self, dir):
+    #     i1, j1
+    #     i2 = i + di
+    #     j2 = j + dj
+    #     if 0 < i2 < n:
+    #         tmp = self.Num[i1, j1]
+    #         self.Num[i1, j1] = self.Num[i2, j2]
+    #         self.Num[i2, j2] = tmp
 
     def set_checkerboard(self):
         self.Col = np.fromfunction(lambda i, j: (i+j)%2, (self.m, self.n), dtype='int8')
@@ -1335,7 +1420,7 @@ if __name__ == '__main__':
     Ellipse(Color('pink'), Color('magenta'), 10)
     Rectangle(Color('red'), Color('blue'), 10)
 
-    Scene(caption='TextList', bg=Color('cyan'), shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
+    Scene(caption='ListBox', bg=Color('cyan'), shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
     Text('TextMenu')
     TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
     
@@ -1344,11 +1429,11 @@ if __name__ == '__main__':
     InputNum(cmd='print(self.num)')
     InputNum(num=1.2, inc=0.2, cmd='print(self.num)')
 
-    Scene(caption='TextList')
-    TextList(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
+    Scene(caption='ListBox')
+    ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
 
     cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 'Harrington', 'Melbourne']
-    TextList(cities, dir=(1, 0), cmd='App.scene.set_status(self.item)')
+    ListBox(cities, dir=(1, 0), cmd='App.scene.set_status(self.item)')
 
     Scene(caption='Node size')
     Node(size=(40, 40), dir=(1, 1))
@@ -1431,6 +1516,16 @@ if __name__ == '__main__':
     Scene(caption='TextEdit - editable text')
     TextEdit('Elle', autosize=True)
     TextEdit('Edit this text with the cursor')
+
+    Scene(caption='ListBox')
+    ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
+
+    cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 
+        'Harrington', 'Melbourne', 'New York', 'Oslo', 'Paris']    
+    ListBox(cities, dir=(1, 0), wrap=True, align=2, mode=1)
+
+    atts = dir()
+    ListBox(atts, width=300, align=1, wrap=False, mode=2)
 
     app.run()
 """
