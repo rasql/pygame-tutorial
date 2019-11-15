@@ -176,7 +176,7 @@ class Scene:
     """Create a new scene and initialize the node options."""
     options = { 'id': 0,
                 'bg': Color('gray'),  # background color
-                'caption': 'Pygame',  # window caption
+                #'caption': 'Pygame',  # window caption
                 'img_folder': '',     # image folder
                 'snd_folder': '',     # sound folder
                 'file': '',  # background image file
@@ -193,11 +193,12 @@ class Scene:
     selection_border = (Color('cyan'), 1)
     status_line = (Color('black'), Color('gray'), 20)  # col, bg, size
 
-    def __init__(self, remember=True, **options):
+    def __init__(self, caption='Pygame', remember=True, **options):
         # Append the new scene and make it the current scene
         App.scenes.append(self)
         App.scene = self
         self.nodes = []
+        self.caption = caption
 
         self.clicks = 0  # for double-clicks
         self.text = ''   # for copy/paste
@@ -543,13 +544,13 @@ class Node:
             Node.resizing = False
             Node.moving = False
         
-        elif event.type == KEYDOWN:
-            if event.key in Node.dirs:
-                dx, dy = Node.dirs[event.key]
-                if mods & KMOD_ALT:
-                    self.rect.move_ip(10*dx, 10*dy)
-                else:
-                    self.rect.move_ip(dx, dy)
+        # elif event.type == KEYDOWN:
+        #     if event.key in Node.dirs:
+        #         dx, dy = Node.dirs[event.key]
+        #         if mods & KMOD_ALT:
+        #             self.rect.move_ip(10*dx, 10*dy)
+        #         else:
+        #             self.rect.move_ip(dx, dy)
 
     def update(self):
         pass
@@ -587,41 +588,29 @@ class Node:
     def __str__(self):
         return self.__class__.__name__ + str(self.id)
 
-
-class Text(Node):
-    """Create a text object which knows how to draw itself."""
-
+class TextImg:
+    """Create a text surface image."""
     options = { 'fontname': None,
-                'fontsize': 36,
+                'fontsize': 24,
                 'fontcolor': Color('black'),
-                'fontbg': None,
 
                 'italic': False,
                 'bold': False,
                 'underline': False,
-                'autosize': True,
-
-                'h_align': 0,
-                'v_align': 0,
     }
 
-    def __init__(self, text='Text', cmd='', **options):
+    def __init__(self, text='Text', **options):
         """Instantiate and render the text object."""
-        super().__init__(**options)
-
         # update existing Text options, without adding new ones
         for k in options:
-            if k in Text.options:
-                Text.options[k] = options[k]
+            if k in TextImg.options:
+                TextImg.options[k] = options[k]
 
-        self.__dict__.update(Text.options)
+        self.__dict__.update(TextImg.options)
         
         self.text = text
-        self.cmd = cmd
-    
         self.set_font()
         self.render()
-        Node.options['size'] = self.rect.size
 
     def set_font(self):
         """Set the font and its properties."""
@@ -632,36 +621,47 @@ class Text(Node):
 
     def render(self):
         """Render the text into an image."""
+        self.img = self.font.render(self.text, True, self.fontcolor)
+    
+class Text(Node):
+    """Create a text object horizontal and vertical alignement."""
+    options = {
+        'align': (0, 0),    # 0=left/top, 1=center, 2=right/bottom
+        'autosize': True,   # size based on text size
+        'bg': None,
+    }
+    def __init__(self, text='Text', **options):
+        super().__init__(**options)
+
+        for k in options:
+            if k in Text.options:
+                Text.options[k] = options[k]
+
+        self.__dict__.update(Text.options)
+
+        self.txt = TextImg(text, **options)
+        self.text = self.txt.text
+        self.render()
+    
+    def render(self):
+        self.txt.render()
+
         if self.autosize:
-            self.size = self.font.size(self.text)
+            self.size = self.txt.img.get_size()
             self.rect.size = self.size
 
-        self.img0 = pygame.Surface(self.size, flags=SRCALPHA)
+        self.img = pygame.Surface(self.size, flags=SRCALPHA)
         if self.bg != None:
-            self.img0.fill(self.bg)
-        self.text_img = self.font.render(self.text, True, self.fontcolor, self.fontbg)
-        self.text_rect = self.text_img.get_rect()
+            self.img.fill(self.bg)
         
         w, h = self.rect.size
-        w0, h0 = self.text_img.get_size()
+        w0, h0 = self.txt.img.get_size()
         
-        if self.h_align == 0:
-            x = 0
-        elif self.h_align == 1:
-            x = (w-w0)//2
-        else:
-            x = w-w0
+        x = (0, (w-w0)//2, w-w0)[self.align[0]]
+        y = (0, (h-h0)//2, h-h0)[self.align[1]]
 
-        if self.v_align == 0:
-            y = 0
-        elif self.v_align == 1:
-            y = (h-h0)//2
-        else:
-            y = h-h0
-        
-        self.rect.size = w, h
-        self.img0.blit(self.text_img, (x, y))
-        self.img = self.img0.copy()
+        self.img.blit(self.txt.img, (x, y))
+        self.img0 = self.img.copy()
 
 class TextEdit(Text):
     """Text with movable cursor to edit the text."""
@@ -688,7 +688,7 @@ class TextEdit(Text):
         """Get a list of all character positions."""
         self.char_positions = [0]
         for i in range(len(self.text)):
-            w, h = self.font.size(self.text[:i+1])
+            w, h = self.txt.font.size(self.text[:i+1])
             self.char_positions.append(w)
     
     def get_char_index(self, position):
@@ -700,16 +700,13 @@ class TextEdit(Text):
         return i
 
     def move_cursor(self, d):
-        """Move the cursor by d charactors, and limit to text length."""
+        """Move the cursor by d characters, and limit to text length."""
         mod = pygame.key.get_mods()
         n = len(self.text)
         i = min(max(0, self.cursor+d), n)
 
         if mod & KMOD_META:
-            if d == 1:
-                i = n
-            else:
-                i = 0
+            i = n if d == 1 else 0
 
         if mod & KMOD_ALT:
             while (0 < i < n) and self.text[i] != ' ':
@@ -747,6 +744,8 @@ class TextEdit(Text):
         text1 = self.text[:i]
         text2 = self.text[i2:]
         self.text = text1 + text + text2
+        self.txt.text = self.text
+        
         self.cursor = i + len(text)
         self.cursor2 = self.cursor
 
@@ -758,6 +757,7 @@ class TextEdit(Text):
                 exec(self.cmd)
 
             elif event.key == K_BACKSPACE:
+                # delete previous charactor or selection
                 if self.cursor == self.cursor2:
                     self.cursor = max(0, self.cursor-1)
                 self.insert_text('')
@@ -782,6 +782,9 @@ class TextEdit(Text):
 
             elif event.key == K_v and event.mod & KMOD_META:
                 self.insert_text(App.scene.text)
+
+            elif event.key == K_a and event.mod & KMOD_META:
+                self.select_all()
 
             self.render()
 
@@ -826,7 +829,6 @@ class TextEdit(Text):
         col = TextEdit.text_selection
         self.selection_img = pygame.Surface((p2-p+1, self.rect.height))
         self.selection_img.fill(col)
-
         
     def draw(self):
         App.screen.blit(self.selection_img, self.selection_rect)
@@ -852,20 +854,25 @@ class TextEdit(Text):
         self.cursor2 = i+1 if self.text[i]==' ' else i
 
     def triple_click(self):
+        self.select_all()
+
+    def select_all(self):
         """Select the whole text."""
         self.cursor = len(self.text)
         self.cursor2 = 0
 
+
 class ListBox(Node):
     """Show a list of text items."""
 
-    options = { 'm': 10,    # listbox height
-                'width': 100,
-                'wrap': False,
-                'align': 0,  # 0=left, 1=center, 2=right
-                'mode': 1,   # 0=none, 1=one, 2=multiple selection
-                'style': (Color('black'), Color('white')),
-                'sel_style': (Color('white'), Color('blue'))
+    options = { 'm': 10,        # listbox height
+                'width': 100,   # in pixels
+                'wrap': False,  # cursors wraps around
+                'align': 0,     # 0=left, 1=center, 2=right
+                'mode': 1,      # 0=none, 1=one, 2=multiple selections
+                'style': (Color('black'), Color('white')),     # font color, background color
+                'sel_style': (Color('white'), Color('blue')),  # font color, background color
+                'fontsize': 24,
     }
 
     def __init__(self, items, i=0, **options):
@@ -879,11 +886,8 @@ class ListBox(Node):
         self.__dict__.update(ListBox.options)
 
         self.set_list(items)
-
-        self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.Font(None, self.fontsize)
         self.h = self.font.size('')[1]
-        self.img_sel = pygame.Surface((self.width, self.h))
-        self.img_sel.fill(Color('gray'))
         self.render()
 
     def set_list(self, items):
@@ -897,8 +901,10 @@ class ListBox(Node):
         
     def render(self):
         w0 = self.width
-        self.item = self.items[self.i]
+        fg, bg = self.style
+
         self.img0 = pygame.Surface((w0, self.m * self.h))
+        self.img0.fill(bg)
         self.rect.size = self.img0.get_size()
         
         for i in range(min(self.m, self.n)):
@@ -910,10 +916,17 @@ class ListBox(Node):
             text = self.font.render(self.items[self.i0 + i], True, fg)
             w, h = text.get_size()
             x = (0, (w0-w)//2, w0-w)[self.align]
-            self.img_sel.fill(bg)
-            self.img0.blit(self.img_sel, (0, i * self.h))
+
+            rect = Rect(0, i * self.h, w0, h)
+            self.img0.fill(bg, rect)
             self.img0.blit(text, (x, i*h))
         self.img = self.img0.copy()
+
+    def scroll(self, d):
+        """Scroll listbox up and down."""
+        i0 = self.i0
+        n = max(0, self.n - self.m)
+        self.i0 = max(0, min(i0+d, n))
 
     def move_cursor(self, d):
         """Move the active cell up or down."""
@@ -945,24 +958,35 @@ class ListBox(Node):
                 self.i0 = 0
 
         self.i = i
+        # self.sel[i] = 1
+        self.select(i)
 
     def select(self, i):
+        # Select item i
         mod = pygame.key.get_mods()
+        self.i = i
+        self.item = self.items[i]
+
         if self.mode == 1:
             self.select_all(0)
             self.sel[i] = 1
         elif self.mode == 2:
-            if not mod & KMOD_META:
+            if mod & KMOD_SHIFT:
+                self.sel[i] = 1
+            elif mod & KMOD_META:
+                self.sel[i] = 1 - self.sel[i]
+            else:
                 self.select_all(0)
-            self.sel[i] = 1 - self.sel[i]
-
+                self.sel[i] = 1
+            
+        
     def select_all(self, val):
          for i in range(self.n):
             self.sel[i] = val
 
     def do_event(self, event):
         if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1:
+            if event.button == 1 or event.button == 3:
                 x, y = event.pos
                 x -= self.rect.left
                 y -= self.rect.top
@@ -970,25 +994,187 @@ class ListBox(Node):
                 i = min(i, self.n-1)
                 self.select(i)
 
+            # scroll with mouse pad
             elif event.button == 4:
-                self.move_cursor(1)
+                self.scroll(-1)
             elif event.button == 5:
-                self.move_cursor(-1)
+                self.scroll(1)
         
         elif event.type == KEYDOWN:
             if event.key == K_DOWN:
                 self.move_cursor(1)
             elif event.key == K_UP:
-                self.move_cursor(-1)    
+                self.move_cursor(-1)
             elif event.key == K_RETURN:
                 exec(self.cmd)
             elif event.key == K_a:
-                if event.mod & KMOD_META:
+                if event.mod & KMOD_META and self.mode == 2:
                     self.select_all(1)
                    
         self.render()
+
+class ListMenu:
+    """Display a drop-down menu."""
+    def __init__(self, items, **options):
+        self.items = items
+
+class Checkbox(Node):
+    options = {
+        'style': (Color('blue'), 2),
+    }
+
+    def __init__(self, w=20, **options):
+        super().__init__(**options)
+        self.__dict__.update(**options)
+
+        self.__dict__.update(Checkbox.options)
+
+        self.label = TextImg(**options)
+        w, h = self.label.img.get_size()
+        self.size = w+h, h
+        self.rect.size = self.size
+        
+        self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
+
+        self.state = False
+        self.render()
+
+    def render(self):
+        col, d = self.style
+        w, h = self.label.img.get_size()
+        a = self.label.font.get_ascent()
+
+        self.img.blit(self.label.img, (h, 0))
+        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
+        pygame.draw.rect(self.img, Color('black'), Rect(0, 0, a, a), d)
+        if self.state:
+            pygame.draw.line(self.img, col, (0, 0), (a, a), d)
+            pygame.draw.line(self.img, col, (0, a), (a, 0), d)
+
+    def switch_state(self):
+        self.state = not self.state
+        try: 
+            exec(self.cmd)
+        except:
+            print('cmd error') 
             
+        self.render()
+
+    def do_event(self, event):
+        if event.type == MOUSEBUTTONDOWN:
+            self.switch_state()
+        
+        elif event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                self.switch_state()
+
+
+class Radiobutton(Node):
+    def __init__(self, d=20, **options):
+        super().__init__(**options)
+        self.d = d
+        self.render()
+
+    def render(self):
+        d = self.d
+        self.img = pygame.Surface((d, d), flags=SRCALPHA)
+        pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, d, d), 1)
+        pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, d-6, d-6), 0)
+        
+
+
     
+class SliderObj:
+    """Define a slider object."""
+    options = {
+        'x0': 0,
+        'x1': 100,
+        'dx': 1,
+        'size': (100,30),
+        'orientation': 0,  # 0 = horizontal, 1=vertical
+    }
+    style_label = (Color('black'))
+    style_slider = (Color('blue'), 0, 2)  # color, slider, line
+
+    def __init__(self, **options):
+        # update existing SliderObj options, without adding new ones
+        for k in options:
+            if k in SliderObj.options:
+                SliderObj.options[k] = options[k]
+
+        self.__dict__.update(SliderObj.options)
+
+        self.x = (self.x1 + self.x0)/2
+
+        self.img = pygame.Surface(self.size, flags=SRCALPHA)
+        self.rect = self.img.get_rect()
+
+        self.font = pygame.font.Font(None, 18)
+        self.render()
+
+    def render(self):
+        w, h = self.size
+        col = SliderObj.style_label
+        img_x0 = self.font.render(str(self.x0), True, col)
+        img_x1 = self.font.render(str(self.x1), True, col)
+        img_x  = self.font.render(str(self.x), True, col, Color('white'))
+        
+        rect_x0 = img_x0.get_rect()
+        rect_x1 = img_x1.get_rect()
+        rect_x0.bottomleft = (0, h)
+        if self.orientation == 0:
+            rect_x1.bottomright = w, h
+        
+        self.slider_rect = img_x.get_rect()
+        x2 = (w, h)[self.orientation]
+        slider_x = x2 * (self.x - self.x0) // (self.x1 - self.x0 + 10)
+
+        self.slider_rect.center = ((slider_x, h//2), (w//2, h-slider_x))[self.orientation]
+
+        self.img.fill((0, 0, 0, 0))
+        self.img.blit(img_x0, rect_x0)
+        self.img.blit(img_x1, rect_x1)
+        
+        col, d, d1 = SliderObj.style_slider
+        p0 = ((0, h//2), (w//2, 0))[self.orientation]
+        p1 = ((w, h//2), (w//2, h))[self.orientation]
+
+        pygame.draw.line(self.img, col, p0, p1, d1)
+        self.slider_rect.inflate_ip(2, 2)
+        self.img.blit(img_x, self.slider_rect)
+        pygame.draw.rect(self.img, col, self.slider_rect, 1)
+
+    def do_event(self, event):
+        keys = {K_DOWN:-1, K_LEFT:-1, K_UP:1, K_RIGHT:1}
+        if event.type == KEYDOWN:
+            if event.key in keys:
+                dx = keys[event.key] * self.dx
+                if event.mod & KMOD_ALT:
+                    dx *= 10
+                if event.mod & KMOD_META:
+                    dx *= 100
+                self.x = max(self.x0, min(self.x + dx, self.x1))
+                self.render()
+
+        if event.type == MOUSEMOTION:
+            x = event.pos[0] - self.rect.x
+            y = event.pos[1] - self.rect.y
+            
+            if self.slider_rect.collidepoint(x, y):
+                self.slider_rect.move_ip(event.rel)
+                self.render()
+                print(event)
+
+class Slider(Node):
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.slider = SliderObj(**options)
+        self.slider.rect = self.rect
+        self.img = self.slider.img
+
+    def do_event(self, event):
+        self.slider.do_event(event)
+
 class TextMenu(Text):
     """Select a text item from an items list."""
     def __init__(self, items, i=0, **options):
@@ -1071,15 +1257,13 @@ class Ellipse(Node):
 class Button(Text):
     """Create a button object with command.""" 
     options = { 'border': 2,
-                'bg': Color('yellow'),
+                'bg': Color('gray'),
                 'size': (160, 40),
                 'autosize': False,
-                'v_align': 1,
-                'h_align': 1,
+                'align': (1, 1),
         }
 
     def __init__(self, text='Button', cmd='',  **options):
-        print(Button.options)
         super().__init__(text, **Button.options)
         self.cmd = cmd
 
@@ -1513,31 +1697,68 @@ if __name__ == '__main__':
     b.Num = np.arange(16).reshape((4, 4))
     b.render()
 
-    Scene(caption='TextEdit - editable text')
-    TextEdit('Elle', autosize=True)
-    TextEdit('Edit this text with the cursor')
+    Scene('TextImg')
+    Text('TextImg', size=(200, 25))
+    Text('underline', underline=True)
+    Text('italic', italic=True)
+    Text('bold', bold=True)
+    Text('red', fontcolor=Color('red'))
+    Text('size=48', fontsize=48)
+    
+    Scene('Text alignment')
+    Text('Text alignment', autosize=True, fontsize=24, underline=False, italic=False, bold=False)
+    for i in range(3):
+        j = 0
+        Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False, pos=(20+i*170, 50))
+        for j in range(1, 3):
+            Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False)
 
-    Scene(caption='ListBox')
-    ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
+    Scene('TextEdit - editable text')
+    TextEdit('Elle', autosize=True, fontsize=36, bg=None, fontcolor=Color('black'))
+    TextEdit('Edit this text with the cursor', size=(400, 100), autosize=False, align=(2,1))
 
+    names = ['Charlie', 'Daniel', 'Tim', 'Jack']
     cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 
         'Harrington', 'Melbourne', 'New York', 'Oslo', 'Paris']    
-    ListBox(cities, dir=(1, 0), wrap=True, align=2, mode=1)
+    constants = dir(pygame.locals)
+    
+    Scene('ListBox')
+    Text('Text alignement: left, center, right', fontsize=24, autosize=True)
+    ListBox(names, cmd='print(self.item)')
+    ListBox(cities, dir=(1, 0), wrap=True, align=1, mode=1)
+    ListBox(constants, width=300, align=2, wrap=False, mode=2)
 
-    atts = dir()
-    ListBox(atts, width=300, align=1, wrap=False, mode=2)
+    Scene('ListBox')
+    Text('Single item selection')
+    ListBox(names, cmd='print(self.item)', width=100, align=0, mode=1)
+    ListBox(cities, dir=(1, 0), wrap=True)
+    ListBox(constants, width=300, align=2, wrap=False)
+
+    Scene('ListBox')
+    Text('Multiple item selection')
+    ListBox(names, cmd='print(self.item)', width=100, align=0, mode=2)
+    ListBox(cities, dir=(1, 0), wrap=True)
+    ListBox(constants, width=300, align=2, wrap=False)
+
+    Scene('Slider')
+    Text('Horizontal slider')
+    Slider()
+    Slider(size=(200, 20), x0=-50, x1=50)
+    Slider(size=(300, 50), x0=0, x1=10, dx=1)
+
+    Scene('Slider')
+    Text('Vertical slider')
+    Slider(orientation=1, size=(50, 200), dir=(1, 0))
+    Slider()
+    Slider()
+
+    Scene('Checkbox')
+    Checkbox(text='Monday', cmd='print(self, self.state)')
+    Checkbox(text='Friday')
+    Radiobutton(d=30)
+    Radiobutton()
+
+    # Scene('ListMenu')
+    # ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
 
     app.run()
-"""
-class Num(nparray) - add more functions
-class Graph - points, links (Mill)
-pts = ((0, 0), (3, 0), (6, 0), (3, 3))
-lines = [[1, 3], [3, 2]]
-Games : Pong, Snake, Asteroids, Bricks
-Games : Mines, 2048
-Chess, possible moves, protected positions
-rook, bishop, knight, queen, king, pawn
-board history, playback
-is it a solution ?
-is it an end position ?
-"""

@@ -5,11 +5,12 @@ The graphical user interface (GUI) consists of all the elements the user can int
 (read, click, drag, resize, select, input):
 
 - text
-- buttons
-- checkboxes, radio buttons
-- menus (pop-up, pull-down)
-- listboxes
-- sliders
+- button
+- checkbutton
+- radiobutton
+- menu (pop-up, pull-down)
+- listboxe
+- slider
 
 Text attributes
 ---------------
@@ -33,7 +34,7 @@ from the Text class variables::
     super().__init__(**options)
     self.__dict__.update(Text.options)
 
-The font size and the tree styles (bold, italic, underline) are set at font creation::
+The font size and the three styles (bold, italic, underline) are set at font creation::
 
    def set_font(self):
         """Set the font and its properties."""
@@ -42,7 +43,7 @@ The font size and the tree styles (bold, italic, underline) are set at font crea
         self.font.set_italic(self.italic)
         self.font.set_underline(self.underline)
 
-The font color and the backgroudn color are set when rendering the text::
+The font color and the background color are set when rendering the text::
 
     def render(self):
         """Render the text into an image."""
@@ -53,16 +54,16 @@ Here is a code example:
 
 .. literalinclude:: text1.py
 
-Which produces the following result.
+Which produces this result:
 
 .. image:: text1.png
 
 
-Horizontal and vertical alignement
-----------------------------------
+Horizontal and vertical alignment
+---------------------------------
 
 For a given box size, text can be aligned horizontally to the left, center, or right.
-The following code places the text image to these three positions::
+The following code aligns the text image with these three positions::
 
     w, h = self.rect.size
     w0, h0 = self.text_img.get_size()
@@ -74,7 +75,7 @@ The following code places the text image to these three positions::
     else:
         x = w-w0
 
-In the vertical position the text image can be aligne at the top, middle or bottom::
+In the vertical direction the text image can be aligned at the top, middle or bottom::
 
     if self.v_align == 0:
         y = 0
@@ -105,7 +106,7 @@ Here is a code example:
 
 .. literalinclude:: text3.py
 
-Which produces the following result:
+It produces the following result:
 
 .. image:: text3.png
 

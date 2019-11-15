@@ -67,3 +67,18 @@ object selection
 * click outside to deselect
 * TAB to select next (shift-TAB) to select previous
 * draw rect to make multiple selection
+
+Items to implement: 
+
+class Num(nparray) - add more functions
+class Graph - points, links (Mill)
+pts = ((0, 0), (3, 0), (6, 0), (3, 3))
+lines = [[1, 3], [3, 2]]
+Games : Pong, Snake, Asteroids, Bricks
+Games : Mines, 2048
+Chess, possible moves, protected positions
+rook, bishop, knight, queen, king, pawn
+board history, playback
+is it a solution ?
+is it an end position ?
+"""
