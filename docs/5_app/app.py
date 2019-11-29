@@ -85,10 +85,10 @@ class App:
             (K_TAB, KMOD_NONE): 'App.scene.next_focus()',
             (K_TAB, KMOD_LSHIFT): 'App.scene.next_focus(-1)',
 
-            (K_e, KMOD_LCTRL): 'Ellipse(pos=pygame.mouse.get_pos())',
-            (K_i, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
-            (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
-            (K_r, KMOD_LCTRL): 'Rectangle(pos=pygame.mouse.get_pos())',
+            (K_e, KMOD_LCTRL): 'Ellipse(pos=pygame.mouse.get_pos(), size=(100, 60))',
+            (K_i, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos(), size=(100, 60))',
+            (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos(), size=(100, 60))',
+            (K_r, KMOD_LCTRL): 'Rectangle(pos=pygame.mouse.get_pos(), size=(100, 60))',
             (K_t, KMOD_LCTRL): 'Text(pos=pygame.mouse.get_pos())',
 
             (K_x, KMOD_LMETA): 'print("cmd+X")',
@@ -552,24 +552,10 @@ class Node:
                     self.render()
                 else:
                     self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
-                
-            # if Node.moving and self.movable:
-            #     screen_rect =  App.screen.get_rect()
-            #     if screen_rect.contains(self.rect.move(event.rel)):
-            #         self.rect.move_ip(event.rel)
-            #         self.label_rect.move_ip(event.rel)
 
         elif event.type == MOUSEBUTTONUP:
             Node.resizing = False
             Node.moving = False
-        
-        # elif event.type == KEYDOWN:
-        #     if event.key in Node.dirs:
-        #         dx, dy = Node.dirs[event.key]
-        #         if mods & KMOD_ALT:
-        #             self.rect.move_ip(10*dx, 10*dy)
-        #         else:
-        #             self.rect.move_ip(dx, dy)
 
     def update(self):
         pass
@@ -607,7 +593,7 @@ class Node:
     def __str__(self):
         return self.__class__.__name__ + str(self.id)
 
-class TextImg:
+class TextObj:
     """Create a text surface image."""
     options = { 'fontname': None,
                 'fontsize': 24,
@@ -616,20 +602,24 @@ class TextImg:
                 'italic': False,
                 'bold': False,
                 'underline': False,
+
+                'width': 300,
+                'alignment': 0,  # 0=left, 1=center, 2=right
+                'x': 0,
     }
 
     def __init__(self, text='Text', **options):
         """Instantiate and render the text object."""
         # update existing Text options, without adding new ones
         for k in options:
-            if k in TextImg.options:
-                TextImg.options[k] = options[k]
+            if k in TextObj.options:
+                TextObj.options[k] = options[k]
 
-        self.__dict__.update(TextImg.options)
+        self.__dict__.update(TextObj.options)
         
         self.text = text
         self.set_font()
-        self.render()
+        self.render_text()
 
     def set_font(self):
         """Set the font and its properties."""
@@ -638,10 +628,37 @@ class TextImg:
         self.font.set_italic(self.italic)
         self.font.set_underline(self.underline)
 
-    def render(self):
+    def render_text(self):
         """Render the text into an image."""
-        self.img = self.font.render(self.text, True, self.fontcolor)
+        img = self.font.render(self.text, True, self.fontcolor)
+        self.rect = img.get_rect()
+        self.align_image(img)
+
+    def align_image(self, img):
+        w, h = self.font.size(self.text)
+        w0 = self.width
+        self.x = 0
+        if w0 > 0:
+            self.x = (0, (w0-w)//2, (w0-w))[self.alignment]
+            self.img = pygame.Surface((w0, h))
+            self.img.blit(img, (self.x, 0))
+            self.rect.size = self.img.get_size()
+        else:
+            self.img = img
+            
+        
+
+class Text2(Node):
+    """Create a text object horizontal and vertical alignement."""
+
+    def __init__(self, text='Text', **options):
+            super().__init__(**options)
     
+            self.txt = TextObj(text, **options)
+            self.rect.size = self.txt.rect.size
+            self.img = self.txt.img
+  
+
 class Text(Node):
     """Create a text object horizontal and vertical alignement."""
     options = { 'align': (0, 0),    # 0=left/top, 1=center, 2=right/bottom
@@ -652,12 +669,12 @@ class Text(Node):
         super().__init__(**options)
         self.set_options(Text, options)
 
-        self.txt = TextImg(text, **options)
+        self.txt = TextObj(text, **options)
         self.text = self.txt.text
         self.render()
     
     def render(self):
-        self.txt.render()
+        self.txt.render_text()
 
         if self.autosize:
             self.size = self.txt.img.get_size()
@@ -668,10 +685,11 @@ class Text(Node):
             self.img.fill(self.bg)
         
         w, h = self.rect.size
-        w0, h0 = self.txt.img.get_size()
+        w0, h0 = self.txt.rect.size
         
         x = (0, (w-w0)//2, w-w0)[self.align[0]]
         y = (0, (h-h0)//2, h-h0)[self.align[1]]
+        self.txt.rect.topleft = x, y
 
         self.img.blit(self.txt.img, (x, y))
         self.img0 = self.img.copy()
@@ -680,6 +698,7 @@ class TextLines(Node):
     options = {
         'align': 0,
         'interline': 1,
+        'width': 400,
     }
     def __init__(self, text, **options):
         super().__init__(**options)
@@ -687,49 +706,47 @@ class TextLines(Node):
 
         self.text = text
         self.lines = text.split('\n')
-        self.line0 = TextImg(self.lines[0])
+        self.line0 = TextObj(self.lines[0])
         self.h = self.line0.font.get_linesize()
         n = len(self.lines)
-        self.rect.size = 300, (n-1)*self.interline*self.h+self.h
+        self.rect.width = self.width
+        self.rect.height = (n-1)*self.interline*self.h+self.h
         self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
         self.render()
 
     def render(self):
         for i, line in enumerate(self.lines):
-            txt = TextImg(line)
+            txt = TextObj(line)
             w, h = self.rect.size
             w0, h0 = txt.img.get_size()
             x = (0, (w-w0)//2, w-w0)[self.align]
             y = self.interline * self.h * i
             self.img.blit(txt.img, (x, y))
-class TextEdit(Text):
-    """Text with movable cursor to edit the text."""
+
+class EditableTextObj(TextObj):
+    """Create and handle cursor for a TextObj."""
 
     cursor_style = Color('red'), 2  # cursor color and width
-    cursor_blink = 600, 400   # interval, on_time
-    text_selection = Color('pink')  # selection color
+    selection_style = Color('pink'), 0
+    blink_rate = 600, 400   # interval, on_time
+    
+    def __init__(self, text='EditableText', cmd='', **options):
+        super().__init__(text, **options)
 
-    def __init__(self, text='TextEdit', cmd='', **options):
-        super().__init__(text=text, cmd=cmd, **options)
-
-        col, d = TextEdit.cursor_style
-        self.cursor = len(self.text)
-        self.cursor_img = pygame.Surface((d, self.rect.height))
-        self.cursor_img.fill(col)
-        self.cursor_rect = self.cursor_img.get_rect()
-        self.cursor_rect.topleft = self.rect.topright
-        self.cursor2 = self.cursor
-
+        # Set cursor index to the end of text string
+        self.cmd = cmd
+        self.i = len(self.text)
+        self.i2 = self.i
         self.set_char_positions()
-        self.render_cursor()
+        self.render()
 
     def set_char_positions(self):
-        """Get a list of all character positions."""
+        """Make a list of all character positions."""
         self.char_positions = [0]
         for i in range(len(self.text)):
-            w, h = self.txt.font.size(self.text[:i+1])
+            w, h = self.font.size(self.text[:i+1])
             self.char_positions.append(w)
-    
+
     def get_char_index(self, position):
         """Return the character index for a given position."""
         for i, pos in enumerate(self.char_positions):
@@ -742,33 +759,28 @@ class TextEdit(Text):
         """Move the cursor by d characters, and limit to text length."""
         mod = pygame.key.get_mods()
         n = len(self.text)
-        i = min(max(0, self.cursor+d), n)
+        self.i = min(max(0, self.i+d), n)
 
         if mod & KMOD_META:
-            i = n if d == 1 else 0
+            self.i = n if d == 1 else 0
 
         if mod & KMOD_ALT:
-            while (0 < i < n) and self.text[i] != ' ':
-                i += d
+            while (0 < self.i < n) and self.text[self.i] != ' ':
+                self.i += d
 
         if not mod & KMOD_SHIFT:
-            self.cursor2 = i
+            self.i2 = self.i
 
-        self.cursor = i
-
-    def get_selection_indices(self):
-        """Get ordered tuple of selection indicies."""
-        i = self.cursor
-        i2 = self.cursor2
-        
-        if i < i2:
-            return i, i2
+    def get_selection(self):
+        """Get ordered tuple of selection indices.""" 
+        if self.i < self.i2:
+            return self.i, self.i2
         else:
-            return i2, i 
+            return self.i2, self.i
 
     def copy_text(self):
         """Copy text to Scene.text buffer."""
-        i, i2 = self.get_selection_indices()
+        i, i2 = self.get_selection()
         text = self.text[i:i2]
         App.scene.text = text
 
@@ -779,29 +791,51 @@ class TextEdit(Text):
 
     def insert_text(self, text):
         """Insert text at the cursor position or replace selection."""
-        i, i2 = self.get_selection_indices()
+        i, i2 = self.get_selection()
         text1 = self.text[:i]
         text2 = self.text[i2:]
         self.text = text1 + text + text2
-        self.txt.text = self.text
+        self.set_char_positions()
+        self.i = i + len(text)
+        self.i2 = self.i
+
+    def select_word(self):
+        """Select word at current position."""
+        i = i2 = self.i
+        n = len(self.text)
+
+        while (0 < i < n) and self.text[i] != ' ':
+                i -= 1
         
-        self.cursor = i + len(text)
-        self.cursor2 = self.cursor
+        while (0 < i2 < n) and self.text[i2] != ' ':
+                i2 += 1
+
+        self.i = i2
+        self.i2 = i+1 if self.text[i]==' ' else i
+
+    def select_all(self):
+        """Select the whole text."""
+        self.i = len(self.text)
+        self.i2 = 0
 
     def do_event(self, event):
         """Move cursor, handle selection, add/backspace text, copy/paste."""
         if event.type == KEYDOWN:
             if event.key == K_RETURN:
                 App.scene.focus = None
-                exec(self.cmd)
+                print(self.cmd)
+                try:
+                    exec(self.cmd)
+                except:
+                    print(f'cmd error in {self}')
 
             elif event.key == K_BACKSPACE:
                 # delete previous charactor or selection
-                if self.cursor == self.cursor2:
-                    self.cursor = max(0, self.cursor-1)
+                if self.i == self.i2:
+                    self.i = max(0, self.i-1)
                 self.insert_text('')
 
-            elif event.key in (K_TAB, K_UP, K_DOWN, K_LCTRL, K_LMETA):
+            elif event.key in (K_TAB, K_UP, K_DOWN, K_LCTRL, K_LMETA, K_LALT, K_LSHIFT):
                 pass
             
             elif event.key == K_LEFT:
@@ -828,78 +862,83 @@ class TextEdit(Text):
             self.render()
 
         elif event.type == MOUSEBUTTONDOWN:
-            pos = event.pos[0] - self.rect.left
+            pos = event.pos[0] - self.rect.left - self.x
             if pos < 3:
                 pos = 0
 
-            i = self.get_char_index(pos)
-            self.cursor = i
+            self.i = self.get_char_index(pos)
             if not pygame.key.get_mods() & KMOD_SHIFT:
-                self.cursor2 = i
+                self.i2 = self.i
 
         elif event.type == MOUSEMOTION and event.buttons[0]:
-            pos = event.pos[0] - self.rect.left
+            pos = event.pos[0] - self.rect.left - self.x
             if pos < 3:
                 pos = 0 
 
-            i = self.get_char_index(pos)
-            self.cursor = i
+            self.i = self.get_char_index(pos)
 
-        self.render_cursor()
+        self.render()
 
-    def render_cursor(self):
-        """Render the cursor and selection image."""
-        i = self.cursor
-        i2 = self.cursor2
-        
-        self.set_char_positions()
-        p = self.char_positions[i]
-        p2 = self.char_positions[i2]
+    def render(self):
+        """Render cursor, selection and text to an image."""
+        h = self.font.get_height()
+        p = self.char_positions[self.i]
+        p2 = self.char_positions[self.i2]
 
-        self.cursor_rect.left = self.rect.left + p
+        self.cursor_rect = Rect(p, 0, 2, h)
 
         if p2 < p:
             p, p2 = p2, p
         
-        self.selection_rect = self.rect.copy()
-        self.selection_rect.left = self.rect.left + p 
-        self.selection_rect.width = p2-p
+        self.selection_rect = Rect(p, 0, p2-p, h)
 
-        col = TextEdit.text_selection
-        self.selection_img = pygame.Surface((p2-p+1, self.rect.height))
-        self.selection_img.fill(col)
+        w, h = self.font.size(self.text)
+        img = pygame.Surface((w+2, h))
         
+        col, d = self.selection_style
+        pygame.draw.rect(img, col, self.selection_rect, d)
+        txt = self.font.render(self.text, True, self.fontcolor)
+        img.blit(txt, (0, 0))
+        
+        col, d = self.cursor_style
+        pygame.draw.rect(img, col, self.cursor_rect)
+        self.align_image(img)
+
+class EditableText(Node):
+    """Create an editable text node."""
+    def __init__(self, text='CursorText', **options):
+        super().__init__(**options)
+
+        self.txt = EditableTextObj(text, **options)
+        self.rect.size = self.txt.rect.size
+        self.txt.rect = self.rect 
+
+        self.img = self.txt.img
+        self.rect.height = self.txt.font.get_height()
+
+    def do_event(self, event):
+        self.txt.do_event(event)
+        self.img = self.txt.img
+
     def draw(self):
-        App.screen.blit(self.selection_img, self.selection_rect)
+        # self.txt.draw()
         Node.draw(self)
         if self == App.scene.focus:
             t = pygame.time.get_ticks()
-            interval, on_time = TextEdit.cursor_blink
+            interval, on_time = EditableTextObj.blink_rate
             if (t % interval) < on_time:
-                App.screen.blit(self.cursor_img, self.cursor_rect)
+                col, d = EditableTextObj.cursor_style
+                rect = self.txt.cursor_rect.move(self.rect.topleft)
+                rect.move_ip(self.txt.x, 0)
+                pygame.draw.rect(App.screen, Color('blue'), rect)
+
 
     def double_click(self):
         """Select the current word."""
-        i = i2 = self.cursor
-        n = len(self.text)
-
-        while (0 < i < n) and self.text[i] != ' ':
-                i -= 1
-        
-        while (0 < i2 < n) and self.text[i2] != ' ':
-                i2 += 1
-
-        self.cursor = i2
-        self.cursor2 = i+1 if self.text[i]==' ' else i
+        self.txt.select_word()
 
     def triple_click(self):
-        self.select_all()
-
-    def select_all(self):
-        """Select the whole text."""
-        self.cursor = len(self.text)
-        self.cursor2 = 0
-
+        self.txt.select_all()
 
 class ListBox(Node):
     """Show a list of text items."""
@@ -1058,7 +1097,7 @@ class ToggleButton(Node):
 
     def render(self):
 
-        self.label = TextImg(**options)
+        self.label = TextObj()
         w, h = self.label.img.get_size()
         self.size = w+h, h
         self.rect.size = self.size
@@ -1096,7 +1135,7 @@ class Checkbox(Toggle, Node):
 
         self.__dict__.update(Checkbox.options)
 
-        self.label = TextImg(**options)
+        self.label = TextObj(**options)
         w, h = self.label.img.get_size()
         self.size = w+h, h
         self.rect.size = self.size
@@ -1138,10 +1177,7 @@ class Radiobutton(Checkbox):
         pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, a, a), 1)
         if self.state:
             pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, a-6, a-6), 0)
-        
 
-
-    
 class SliderObj:
     """Define a slider object."""
     options = {
@@ -1265,8 +1301,8 @@ class Spinbox(Node):
     def __init__(self, **options):
         super().__init__(**options)
         self.set_options(Spinbox, options)
-        self.label = TextImg(self.lbl, **options)
-        self.value = TextImg(str(self.val))
+        self.label = TextObj(self.lbl, **options)
+        self.value = TextObj(str(self.val))
         x0, x1 = self.w
         h = self.label.img.get_size()[1]
         self.img = pygame.Surface((x0+x1, h))
@@ -1290,27 +1326,6 @@ class Spinbox(Node):
                 self.val = max(self.min, self.val - self.inc)
             self.value.text = str(self.val)
             self.value.render()
-            self.render()
-
-class InputNum(Text):
-    """Input a number."""
-    def __init__(self, num=5, min=0, max=10, inc=1, **options):
-        self.text = num
-        super().__init__(str(num), **options)
-        self.min = min
-        self.max = max
-        self.num = num
-        self.inc = inc
-
-    def do_event(self, event):
-        if event.type == KEYDOWN:
-            if event.key == K_RETURN:
-                exec(self.cmd)
-            if event.key in (K_RIGHT, K_UP):
-                self.num = min(self.max, self.num + self.inc)
-            if event.key in (K_LEFT, K_DOWN):
-                self.num = max(self.min, self.num - self.inc)
-            self.value.text = str(self.num)
             self.render()
 
 class Rectangle(Node):
@@ -1695,7 +1710,7 @@ if __name__ == '__main__':
     
     cmd+q - quit the app
     cmd+h - hide window
-    cmd+p - save screen shot (picture) to current folder''')
+    cmd+p - save screen shot to current folder''')
 
     Scene('Create objects')
     TextLines('''Create objects\n
@@ -1715,11 +1730,6 @@ if __name__ == '__main__':
     Scene(caption='ListBox', bg=Color('cyan'), shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
     Text('TextMenu')
     TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
-    
-    Scene(caption='InputNum')
-    Text('Enter numeric input')
-    InputNum(cmd='print(self.num)')
-    InputNum(num=1.2, inc=0.2, cmd='print(self.num)')
 
     Scene(caption='ListBox')
     ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
@@ -1805,8 +1815,8 @@ if __name__ == '__main__':
     b.Num = np.arange(16).reshape((4, 4))
     b.render()
 
-    Scene('TextImg')
-    Text('TextImg', size=(200, 25))
+    Scene('TextObj')
+    Text('TextObj', size=(200, 25))
     Text('underline', underline=True)
     Text('italic', italic=True)
     Text('bold', bold=True)
@@ -1879,15 +1889,24 @@ if __name__ == '__main__':
     Rectangle(fg=Color('yellow'), thickness=10)
     Rectangle(fg=Color('cyan'))
     Rectangle(fg=None)
-
+    
     Scene('Spinbox')
     Spinbox()
     Spinbox(val=7)
     Spinbox(lbl='max=100', max=100, fontsize=36)
     Spinbox(lbl='inc=10', inc=10)
-    
+
     Scene('TextEdit - editable text')
-    TextEdit('Edit this text', autosize=True, fontsize=36, bg=None, fontcolor=Color('black'))
-    TextEdit('Edit this text with the cursor', size=(400, 100), autosize=False, align=(2,1))
+    EditableText('This is left-aligned editable text', fontcolor=Color('black'), fontsize=24, width=400)
+    EditableText('This is centered editable text', alignment=1) 
+    EditableText('This is right-aligned editable text', alignment=2) 
+    
+    EditableText('This text has a cmd fonction', cmd='print(self.text)') 
+    
+    Scene('Text2 - alignement')
+    Text2('left', alignment=0)
+    Text2('center', alignment=1)
+    Text2('right', alignment=2, bg=Color('cyan'))
+    Text2('autosize', width=0)
 
     app.run()
