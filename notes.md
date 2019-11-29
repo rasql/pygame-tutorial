@@ -35,3 +35,9 @@ The ``pygamelib`` file is kept in the top GitHub directory. Each subfolder has a
 
     ls -la
     lrwxr-xr-x   1 raphael  staff    15 May  3 21:41 pygamelib.py -> ../pygamelib.py
+
+To run pygame in MacOS Catalina
+-------------------------------
+
+    pip3 install pygame==2.0.0.dev4
+

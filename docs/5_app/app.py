@@ -1,6 +1,5 @@
 """
 App
-
 - there is only one App object
 - an app has multiple scenes (App.scenes)
 - an app has one current scene (App.scene)
@@ -20,7 +19,6 @@ Node (object)
 - nodes have default position and size (pos, size)
 - nodes are automatically placed at creation (dir, gap)
 - nodes inherit options (color, size, ...) from the previous object
-- ARROW keys move the active object
 
 A Node object has the following properties
 
@@ -87,9 +85,10 @@ class App:
             (K_TAB, KMOD_NONE): 'App.scene.next_focus()',
             (K_TAB, KMOD_LSHIFT): 'App.scene.next_focus(-1)',
 
-            (K_e, KMOD_LCTRL): 'Ellipse(Color("green"), pos=pygame.mouse.get_pos())',
+            (K_e, KMOD_LCTRL): 'Ellipse(pos=pygame.mouse.get_pos())',
+            (K_i, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
             (K_n, KMOD_LCTRL): 'Node(pos=pygame.mouse.get_pos())',
-            (K_r, KMOD_LCTRL): 'Rectangle(Color("white"), pos=pygame.mouse.get_pos())',
+            (K_r, KMOD_LCTRL): 'Rectangle(pos=pygame.mouse.get_pos())',
             (K_t, KMOD_LCTRL): 'Text(pos=pygame.mouse.get_pos())',
 
             (K_x, KMOD_LMETA): 'print("cmd+X")',
@@ -204,7 +203,7 @@ class Scene:
         self.text = ''   # for copy/paste
 
         # Reset Node options to default
-        Node.options = Node.options0.copy()
+        Node.reset_options()
 
         # update existing Scene options, without adding new ones
         if remember:
@@ -410,6 +409,7 @@ class Node:
                 'gap': (10, 10),
 
                 'id': 0,
+                'keep': True,
                 'file': '',
                 'bg': None,
                 'img': None,
@@ -421,7 +421,7 @@ class Node:
                 }
 
     # current options dictionary for each node
-    options = {}
+    options = options0.copy()
     resizing = False
     moving = False
 
@@ -434,15 +434,18 @@ class Node:
     # key direction vectors
     dirs = {K_LEFT:(-1, 0), K_RIGHT:(1, 0), K_UP:(0, -1), K_DOWN:(0, 1)}
 
+    @classmethod
+    def reset_options(cls):
+        cls.options = cls.options0.copy()
+
+    @staticmethod
+    def increment_id():
+        Node.options['id'] += 1 
+
     def __init__(self, **options):
         # update existing Node options, without adding new ones
-        for k in options:
-            if k in Node.options:
-                Node.options[k] = options[k]
-
-        # create instance attributes from current class options
-        self.__dict__ = Node.options.copy()
-        Node.options['id'] += 1
+        self.set_options(Node, options)
+        self.increment_id()
         
         self.calculate_pos(options)
         self.rect = Rect(*self.pos, *self.size)
@@ -454,6 +457,22 @@ class Node:
         self.color_img()
         if self.file != '':
             self.load_img()
+
+    def set_options(self, cls, options):
+        """Set instance options from class options."""
+
+        if 'keep' in options:
+            Node.options['keep'] = options['keep']
+
+        if Node.options['keep']:
+            # update class options from instance option
+            for key in options:
+                if key in cls.options:
+                    cls.options[key] = options[key]
+
+        self.__dict__.update(cls.options)
+        self.__dict__.update(options)
+
 
     def create_img(self):
         """Create the image surface, and the original img0."""
@@ -534,11 +553,11 @@ class Node:
                 else:
                     self.img = pygame.transform.smoothscale(self.img0, self.rect.size)
                 
-            if Node.moving and self.movable:
-                screen_rect =  App.screen.get_rect()
-                if screen_rect.contains(self.rect.move(event.rel)):
-                    self.rect.move_ip(event.rel)
-                    self.label_rect.move_ip(event.rel)
+            # if Node.moving and self.movable:
+            #     screen_rect =  App.screen.get_rect()
+            #     if screen_rect.contains(self.rect.move(event.rel)):
+            #         self.rect.move_ip(event.rel)
+            #         self.label_rect.move_ip(event.rel)
 
         elif event.type == MOUSEBUTTONUP:
             Node.resizing = False
@@ -625,19 +644,13 @@ class TextImg:
     
 class Text(Node):
     """Create a text object horizontal and vertical alignement."""
-    options = {
-        'align': (0, 0),    # 0=left/top, 1=center, 2=right/bottom
-        'autosize': True,   # size based on text size
-        'bg': None,
+    options = { 'align': (0, 0),    # 0=left/top, 1=center, 2=right/bottom
+                'autosize': True,   # size based on text size
+                'bg': None,
     }
     def __init__(self, text='Text', **options):
         super().__init__(**options)
-
-        for k in options:
-            if k in Text.options:
-                Text.options[k] = options[k]
-
-        self.__dict__.update(Text.options)
+        self.set_options(Text, options)
 
         self.txt = TextImg(text, **options)
         self.text = self.txt.text
@@ -663,17 +676,43 @@ class Text(Node):
         self.img.blit(self.txt.img, (x, y))
         self.img0 = self.img.copy()
 
+class TextLines(Node):
+    options = {
+        'align': 0,
+        'interline': 1,
+    }
+    def __init__(self, text, **options):
+        super().__init__(**options)
+        self.set_options(TextLines, options)
+
+        self.text = text
+        self.lines = text.split('\n')
+        self.line0 = TextImg(self.lines[0])
+        self.h = self.line0.font.get_linesize()
+        n = len(self.lines)
+        self.rect.size = 300, (n-1)*self.interline*self.h+self.h
+        self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
+        self.render()
+
+    def render(self):
+        for i, line in enumerate(self.lines):
+            txt = TextImg(line)
+            w, h = self.rect.size
+            w0, h0 = txt.img.get_size()
+            x = (0, (w-w0)//2, w-w0)[self.align]
+            y = self.interline * self.h * i
+            self.img.blit(txt.img, (x, y))
 class TextEdit(Text):
     """Text with movable cursor to edit the text."""
 
-    cursor = Color('red'), 2  # cursor color and width
+    cursor_style = Color('red'), 2  # cursor color and width
     cursor_blink = 600, 400   # interval, on_time
     text_selection = Color('pink')  # selection color
 
     def __init__(self, text='TextEdit', cmd='', **options):
         super().__init__(text=text, cmd=cmd, **options)
 
-        col, d = TextEdit.cursor
+        col, d = TextEdit.cursor_style
         self.cursor = len(self.text)
         self.cursor_img = pygame.Surface((d, self.rect.height))
         self.cursor_img.fill(col)
@@ -877,17 +916,11 @@ class ListBox(Node):
 
     def __init__(self, items, i=0, **options):
         super().__init__(**options)
-
-        # update existing ListBox options, without adding new ones
-        for k in options:
-            if k in ListBox.options:
-                ListBox.options[k] = options[k]
-
-        self.__dict__.update(ListBox.options)
+        self.set_options(ListBox, options)
 
         self.set_list(items)
         self.font = pygame.font.Font(None, self.fontsize)
-        self.h = self.font.size('')[1]
+        self.h = self.font.size('fg')[1]
         self.render()
 
     def set_list(self, items):
@@ -919,7 +952,7 @@ class ListBox(Node):
 
             rect = Rect(0, i * self.h, w0, h)
             self.img0.fill(bg, rect)
-            self.img0.blit(text, (x, i*h))
+            self.img0.blit(text, (x, i*self.h))
         self.img = self.img0.copy()
 
     def scroll(self, d):
@@ -1018,12 +1051,46 @@ class ListMenu:
     def __init__(self, items, **options):
         self.items = items
 
-class Checkbox(Node):
+class ToggleButton(Node):
+    def __init__(self, labels):
+        self.labels = labels
+        self.img
+
+    def render(self):
+
+        self.label = TextImg(**options)
+        w, h = self.label.img.get_size()
+        self.size = w+h, h
+        self.rect.size = self.size
+        
+        self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
+
+class Toggle:
+    """Add toggle button behavior."""
+
+    def switch_state(self):
+        self.state = not self.state
+        try: 
+            exec(self.cmd)
+        except:
+            print('cmd error') 
+        self.render()
+
+    def do_event(self, event):
+        if event.type == MOUSEBUTTONDOWN:
+            self.switch_state()
+        
+        elif event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                self.switch_state()
+
+
+class Checkbox(Toggle, Node):
     options = {
         'style': (Color('blue'), 2),
     }
 
-    def __init__(self, w=20, **options):
+    def __init__(self, **options):
         super().__init__(**options)
         self.__dict__.update(**options)
 
@@ -1035,7 +1102,6 @@ class Checkbox(Node):
         self.rect.size = self.size
         
         self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
-
         self.state = False
         self.render()
 
@@ -1051,35 +1117,27 @@ class Checkbox(Node):
             pygame.draw.line(self.img, col, (0, 0), (a, a), d)
             pygame.draw.line(self.img, col, (0, a), (a, 0), d)
 
-    def switch_state(self):
-        self.state = not self.state
-        try: 
-            exec(self.cmd)
-        except:
-            print('cmd error') 
+class RadioButtons:
+    def __init__(self, items, i=-1):
+        self.items = items
+
+    # def do_event(self, event):
+    #     for child in children:
+    #         if 
             
-        self.render()
-
-    def do_event(self, event):
-        if event.type == MOUSEBUTTONDOWN:
-            self.switch_state()
-        
-        elif event.type == KEYDOWN:
-            if event.key == K_RETURN:
-                self.switch_state()
-
-
-class Radiobutton(Node):
-    def __init__(self, d=20, **options):
-        super().__init__(**options)
-        self.d = d
-        self.render()
+class Radiobutton(Checkbox):
 
     def render(self):
-        d = self.d
-        self.img = pygame.Surface((d, d), flags=SRCALPHA)
-        pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, d, d), 1)
-        pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, d-6, d-6), 0)
+        col, d = self.style
+        w, h = self.label.img.get_size()
+        a = self.label.font.get_ascent()
+
+        self.img.blit(self.label.img, (h, 0))
+
+        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
+        pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, a, a), 1)
+        if self.state:
+            pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, a-6, a-6), 0)
         
 
 
@@ -1195,6 +1253,45 @@ class TextMenu(Text):
             self.text = self.items[self.i]
             self.render()
 
+class Spinbox(Node):
+    """Input a number."""
+    options = { 'min': 0,
+                'max': 10,
+                'inc': 1,
+                'val': 5,
+                'lbl': 'Spinbox',
+                'w': (100, 100)
+                }
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.set_options(Spinbox, options)
+        self.label = TextImg(self.lbl, **options)
+        self.value = TextImg(str(self.val))
+        x0, x1 = self.w
+        h = self.label.img.get_size()[1]
+        self.img = pygame.Surface((x0+x1, h))
+        self.img.set_colorkey(Color('white'))
+        self.rect.size = self.img.get_size()
+        self.render()
+
+    def render(self):
+        self.img.fill(Color('white'))
+        self.img.blit(self.label.img, (0, 0))
+        self.img.blit(self.value.img, (self.w[0], 0))
+        self.img0 = self.img.copy()
+
+    def do_event(self, event):
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                exec(self.cmd)
+            elif event.key in (K_RIGHT, K_UP):
+                self.val = min(self.max, self.val + self.inc)
+            elif event.key in (K_LEFT, K_DOWN):
+                self.val = max(self.min, self.val - self.inc)
+            self.value.text = str(self.val)
+            self.value.render()
+            self.render()
+
 class InputNum(Text):
     """Input a number."""
     def __init__(self, num=5, min=0, max=10, inc=1, **options):
@@ -1213,44 +1310,36 @@ class InputNum(Text):
                 self.num = min(self.max, self.num + self.inc)
             if event.key in (K_LEFT, K_DOWN):
                 self.num = max(self.min, self.num - self.inc)
-            self.text = str(self.num)
+            self.value.text = str(self.num)
             self.render()
 
 class Rectangle(Node):
     """Draw a rectangle on the screen."""
+    options = { 'fg': Color('green'),
+                'bg': Color('black'),
+                'thickness': 2}
 
-    def __init__(self, color=Color('green'), color2=Color('black'), thick=3, **options):
+    def __init__(self, **options):
         super().__init__(**options)
-        self.color = color
-        self.color2 = color2
-        self.thick = thick
+        self.set_options(Rectangle, options)
         self.render()
 
     def render(self):
         self.img0 = pygame.Surface(self.rect.size, flags=SRCALPHA)
-        pygame.draw.rect(self.img0, self.color, Rect(0, 0, *self.rect.size), 0)
-        pygame.draw.rect(self.img0, self.color2, Rect(0, 0, *self.rect.size), self.thick)
+        if self.fg != None:
+            pygame.draw.rect(self.img0, self.fg, Rect(0, 0, *self.rect.size), 0)
+        pygame.draw.rect(self.img0, self.bg, Rect(0, 0, *self.rect.size), self.thickness)
         self.img = self.img0.copy()
 
 
-class Ellipse(Node):
+class Ellipse(Rectangle):
     """Draw an ellipse on the screen."""
-    options = {'border_col':Color('black'),
-               'border_thick':2,
-               'color':Color('yellow',
-               )}
-
-    def __init__(self, color, color2=(0, 0, 0), thick=1, **options):
-        super().__init__(**options)
-        self.color = color
-        self.color2 = color2
-        self.thick = thick
-        self.render()   
 
     def render(self):
         self.img0 = pygame.Surface(self.rect.size, flags=SRCALPHA)
-        pygame.draw.ellipse(self.img0, self.color, Rect(0, 0, *self.rect.size), 0)
-        pygame.draw.ellipse(self.img0, self.color2, Rect(0, 0, *self.rect.size), self.thick)
+        if self.fg != None:
+            pygame.draw.ellipse(self.img0, self.fg, Rect(0, 0, *self.rect.size), 0)
+        pygame.draw.ellipse(self.img0, self.bg, Rect(0, 0, *self.rect.size), self.thickness)
         self.img = self.img0.copy()
 
 
@@ -1505,16 +1594,6 @@ class Board(Node):
                 k = (k+1) % 3
                 self.Num[self.i, self.j] = k
                 self.render()
-                
-class Num():
-    pass
-"""
-move(dir)
-pos = find(0)
-if pos+dir exist
-    switch(pos, pos+dir)
-
-"""
 
 class Sudoku(Board):
     """Create a sudoko game board."""
@@ -1599,10 +1678,39 @@ class Puzzle(Node):
 
 if __name__ == '__main__':
     app = App()
-    Scene(caption='Scene 0', shortcuts={(K_1, KMOD_NONE):'print(1)'})
-    Text('Scene 0')
-    Ellipse(Color('pink'), Color('magenta'), 10)
-    Rectangle(Color('red'), Color('blue'), 10)
+    Scene('Introduction')
+    TextLines('''An app can have multiple scenes\n
+    cmd+s - goes to the next scene
+    cmd+shift+s - goes to the previous scene
+    
+    cmd+f - toggle full screen
+    cmd+r - toggle resizable
+    cmd+g - toggle no-frame''')
+
+    Scene('Debugging')
+    TextLines('''Debug shortcuts\n
+    cmd+o - show outline
+    cmd+l - show labels
+    cmd+e - show events
+    
+    cmd+q - quit the app
+    cmd+h - hide window
+    cmd+p - save screen shot (picture) to current folder''')
+
+    Scene('Create objects')
+    TextLines('''Create objects\n
+    ctrl+r - new Rectangle
+    ctrl+e - new Ellipse
+    ctrl+t - new Text
+    ctrl+n - new Node''')
+    Rectangle()
+    Ellipse(fg=Color('pink'), bg=Color('magenta'), thickness=10)
+    
+    Scene('Scene shortcuts', shortcuts={(K_1, KMOD_NONE):'print(1)'})
+    Text('Pressing "1" prints 1 to the console')
+
+    Scene('Scene shortcuts', shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
+    Text('Pressing "1" prints 1111111 to the console')
 
     Scene(caption='ListBox', bg=Color('cyan'), shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
     Text('TextMenu')
@@ -1626,10 +1734,10 @@ if __name__ == '__main__':
     Node(size=(20, 20))
 
     Scene(caption='Ellipse and Rectangle')
-    Ellipse(Color('yellow'))
-    Rectangle(Color('pink'))
-    Ellipse(Color('green'))
-    Rectangle(Color('orange'))
+    Ellipse(fg=Color('yellow'))
+    Rectangle(fg=Color('pink'))
+    Ellipse(fg=Color('green'))
+    Rectangle(fg=Color('orange'))
 
     Scene(caption='Board game - selection with mouse and arrow keys')
     Board(dir=(1, 0))
@@ -1692,7 +1800,7 @@ if __name__ == '__main__':
     Scene(caption='Board - number puzzle')
     b = Board(m=4, n=4)
     b.colors = (None, Color('red'))*8
-    print(b.colors)
+
     b.Num = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
     b.Num = np.arange(16).reshape((4, 4))
     b.render()
@@ -1712,10 +1820,6 @@ if __name__ == '__main__':
         Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False, pos=(20+i*170, 50))
         for j in range(1, 3):
             Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False)
-
-    Scene('TextEdit - editable text')
-    TextEdit('Elle', autosize=True, fontsize=36, bg=None, fontcolor=Color('black'))
-    TextEdit('Edit this text with the cursor', size=(400, 100), autosize=False, align=(2,1))
 
     names = ['Charlie', 'Daniel', 'Tim', 'Jack']
     cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 
@@ -1753,12 +1857,37 @@ if __name__ == '__main__':
     Slider()
 
     Scene('Checkbox')
-    Checkbox(text='Monday', cmd='print(self, self.state)')
-    Checkbox(text='Friday')
-    Radiobutton(d=30)
-    Radiobutton()
+    for x in ('Monday', 'Tuesday', 'Wednesday'):
+        Checkbox(text=x, cmd='print(self, self.state)')
 
-    # Scene('ListMenu')
+    Radiobutton.pos = (200, 20)
+    for x in ('Java', 'Python', 'C++'):
+        Radiobutton(text=x)
+
+    Scene('Multi-line text') 
+    TextLines('align=0\nThis is text is extending over\nmultiple lines')
+    TextLines('align=1\nThis is text is extending over\nmultiple lines', align=1)
+    TextLines('align=2\nThis is text is extending over\nmultiple lines', align=2)    
+
+    Scene('Multi-line text') 
+    TextLines('This is text extending\nover multiple lines', fontcolor=Color('red'))
+    TextLines('interline=1.5\nThis is text is extending over\nmultiple lines', align=1, interline=1.5)
+    TextLines('interline=0.8\nThis is text is extending over\nmultiple lines', align=2, interline=0.8)        #\nScene('ListMenu')
     # ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
+
+    Scene('Rectangles')
+    Rectangle(fg=Color('yellow'), thickness=10)
+    Rectangle(fg=Color('cyan'))
+    Rectangle(fg=None)
+
+    Scene('Spinbox')
+    Spinbox()
+    Spinbox(val=7)
+    Spinbox(lbl='max=100', max=100, fontsize=36)
+    Spinbox(lbl='inc=10', inc=10)
+    
+    Scene('TextEdit - editable text')
+    TextEdit('Edit this text', autosize=True, fontsize=36, bg=None, fontcolor=Color('black'))
+    TextEdit('Edit this text with the cursor', size=(400, 100), autosize=False, align=(2,1))
 
     app.run()

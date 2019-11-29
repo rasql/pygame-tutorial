@@ -28,6 +28,6 @@ while running:
                 background = GREEN
 
     screen.fill(background)
-    pygame.display.update()
+    pygame.display.flip()
 
 pygame.quit()
