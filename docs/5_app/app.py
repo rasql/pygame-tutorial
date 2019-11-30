@@ -604,7 +604,8 @@ class TextObj:
                 'underline': False,
 
                 'width': 300,
-                'alignment': 0,  # 0=left, 1=center, 2=right
+                'align': 0,  # 0=left, 1=center, 2=right
+                'bg': None,
                 'x': 0,
     }
 
@@ -630,7 +631,7 @@ class TextObj:
 
     def render_text(self):
         """Render the text into an image."""
-        img = self.font.render(self.text, True, self.fontcolor)
+        img = self.font.render(self.text, True, self.fontcolor, self.bg)
         self.rect = img.get_rect()
         self.align_image(img)
 
@@ -639,16 +640,16 @@ class TextObj:
         w0 = self.width
         self.x = 0
         if w0 > 0:
-            self.x = (0, (w0-w)//2, (w0-w))[self.alignment]
+            self.x = (0, (w0-w)//2, (w0-w))[self.align]
             self.img = pygame.Surface((w0, h))
+            if self.bg != None:
+                self.img.fill(self.bg)
             self.img.blit(img, (self.x, 0))
             self.rect.size = self.img.get_size()
         else:
             self.img = img
-            
-        
 
-class Text2(Node):
+class Text(Node):
     """Create a text object horizontal and vertical alignement."""
 
     def __init__(self, text='Text', **options):
@@ -657,48 +658,10 @@ class Text2(Node):
             self.txt = TextObj(text, **options)
             self.rect.size = self.txt.rect.size
             self.img = self.txt.img
-  
-
-class Text(Node):
-    """Create a text object horizontal and vertical alignement."""
-    options = { 'align': (0, 0),    # 0=left/top, 1=center, 2=right/bottom
-                'autosize': True,   # size based on text size
-                'bg': None,
-    }
-    def __init__(self, text='Text', **options):
-        super().__init__(**options)
-        self.set_options(Text, options)
-
-        self.txt = TextObj(text, **options)
-        self.text = self.txt.text
-        self.render()
-    
-    def render(self):
-        self.txt.render_text()
-
-        if self.autosize:
-            self.size = self.txt.img.get_size()
-            self.rect.size = self.size
-
-        self.img = pygame.Surface(self.size, flags=SRCALPHA)
-        if self.bg != None:
-            self.img.fill(self.bg)
-        
-        w, h = self.rect.size
-        w0, h0 = self.txt.rect.size
-        
-        x = (0, (w-w0)//2, w-w0)[self.align[0]]
-        y = (0, (h-h0)//2, h-h0)[self.align[1]]
-        self.txt.rect.topleft = x, y
-
-        self.img.blit(self.txt.img, (x, y))
-        self.img0 = self.img.copy()
 
 class TextLines(Node):
     options = {
-        'align': 0,
         'interline': 1,
-        'width': 400,
     }
     def __init__(self, text, **options):
         super().__init__(**options)
@@ -706,26 +669,25 @@ class TextLines(Node):
 
         self.text = text
         self.lines = text.split('\n')
-        self.line0 = TextObj(self.lines[0])
+        self.line0 = TextObj(self.lines[0], **options)
         self.h = self.line0.font.get_linesize()
         n = len(self.lines)
-        self.rect.width = self.width
+        self.rect.width = self.line0.width
         self.rect.height = (n-1)*self.interline*self.h+self.h
         self.img = pygame.Surface(self.rect.size, flags=SRCALPHA)
+        bg = TextObj.options['bg']
+        if bg != None:
+            self.img.fill(bg)
         self.render()
 
     def render(self):
         for i, line in enumerate(self.lines):
             txt = TextObj(line)
-            w, h = self.rect.size
-            w0, h0 = txt.img.get_size()
-            x = (0, (w-w0)//2, w-w0)[self.align]
             y = self.interline * self.h * i
-            self.img.blit(txt.img, (x, y))
+            self.img.blit(txt.img, (0, y))
 
 class EditableTextObj(TextObj):
-    """Create and handle cursor for a TextObj."""
-
+    """Create keyboard and mouse-editable text with cursor and selection."""
     cursor_style = Color('red'), 2  # cursor color and width
     selection_style = Color('pink'), 0
     blink_rate = 600, 400   # interval, on_time
@@ -940,6 +902,113 @@ class EditableText(Node):
     def triple_click(self):
         self.txt.select_all()
 
+class Button(Node):
+    """Create a button object with command.""" 
+    options = { 'border': 2,
+                'bg': Color('gray'),
+                'size': (160, 40),
+                'autosize': False,
+                'align': 1,
+                'state': False,
+        }
+
+    def __init__(self, text='Button', cmd='', **options):
+        super().__init__(**options)
+        self.set_options(Button, options)
+
+        self.cmd = cmd
+        self.label = TextObj(text, bg=None, **options)
+        self.render()
+
+    def render(self):
+        self.img.fill(Color('lightblue'))
+        self.label.render_text()
+        w, h = self.rect.size
+        self.label.rect.center = w//2, h//2
+        self.img.blit(self.label.img, self.label.rect)
+
+    def do_event(self, event):
+        super().do_event(event)
+        if event.type == MOUSEBUTTONDOWN:
+            self.state = not self.state
+            try: 
+                exec(self.cmd)
+            except:
+                print('cmd error')
+
+            if self.state:
+                self.label.text = 'ON'
+            else:
+                self.label.text = 'OFF'
+            self.render()
+
+
+class Toggle:
+    """Add toggle button behavior."""
+
+    def switch_state(self):
+        self.state = not self.state
+        try: 
+            exec(self.cmd)
+        except:
+            print('cmd error') 
+        self.render()
+
+    def do_event(self, event):
+        if event.type == MOUSEBUTTONDOWN:
+            self.switch_state()
+        
+        elif event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                self.switch_state()
+
+
+class Checkbox(Toggle, Node):
+    options = {
+        'state': False,
+        'style': (Color('blue'), 2),
+    }
+
+    def __init__(self, **options):
+        super().__init__(**options)
+        self.set_options(Checkbox, options)
+
+        self.label = TextObj(**options)
+        w, h = self.label.img.get_size()
+        self.size = w+h, h
+        self.rect.size = self.size
+        
+        self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
+        self.state = False
+        self.render()
+
+    def render(self):
+        col, d = self.style
+        w, h = self.label.img.get_size()
+        a = self.label.font.get_ascent()
+
+        self.img.blit(self.label.img, (h, 0))
+        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
+        pygame.draw.rect(self.img, Color('black'), Rect(0, 0, a, a), d)
+        if self.state:
+            pygame.draw.line(self.img, col, (0, 0), (a, a), d)
+            pygame.draw.line(self.img, col, (0, a), (a, 0), d)
+            
+class Radiobutton(Checkbox):
+
+    def render(self):
+        col, d = self.style
+        w, h = self.label.img.get_size()
+        a = self.label.font.get_ascent()
+
+        self.img.blit(self.label.img, (h, 0))
+
+        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
+        pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, a, a), 1)
+        if self.state:
+            pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, a-6, a-6), 0)
+
+
 class ListBox(Node):
     """Show a list of text items."""
 
@@ -1090,94 +1159,6 @@ class ListMenu:
     def __init__(self, items, **options):
         self.items = items
 
-class ToggleButton(Node):
-    def __init__(self, labels):
-        self.labels = labels
-        self.img
-
-    def render(self):
-
-        self.label = TextObj()
-        w, h = self.label.img.get_size()
-        self.size = w+h, h
-        self.rect.size = self.size
-        
-        self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
-
-class Toggle:
-    """Add toggle button behavior."""
-
-    def switch_state(self):
-        self.state = not self.state
-        try: 
-            exec(self.cmd)
-        except:
-            print('cmd error') 
-        self.render()
-
-    def do_event(self, event):
-        if event.type == MOUSEBUTTONDOWN:
-            self.switch_state()
-        
-        elif event.type == KEYDOWN:
-            if event.key == K_RETURN:
-                self.switch_state()
-
-
-class Checkbox(Toggle, Node):
-    options = {
-        'style': (Color('blue'), 2),
-    }
-
-    def __init__(self, **options):
-        super().__init__(**options)
-        self.__dict__.update(**options)
-
-        self.__dict__.update(Checkbox.options)
-
-        self.label = TextObj(**options)
-        w, h = self.label.img.get_size()
-        self.size = w+h, h
-        self.rect.size = self.size
-        
-        self.img = pygame.Surface((w+h, h), flags=SRCALPHA)
-        self.state = False
-        self.render()
-
-    def render(self):
-        col, d = self.style
-        w, h = self.label.img.get_size()
-        a = self.label.font.get_ascent()
-
-        self.img.blit(self.label.img, (h, 0))
-        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
-        pygame.draw.rect(self.img, Color('black'), Rect(0, 0, a, a), d)
-        if self.state:
-            pygame.draw.line(self.img, col, (0, 0), (a, a), d)
-            pygame.draw.line(self.img, col, (0, a), (a, 0), d)
-
-class RadioButtons:
-    def __init__(self, items, i=-1):
-        self.items = items
-
-    # def do_event(self, event):
-    #     for child in children:
-    #         if 
-            
-class Radiobutton(Checkbox):
-
-    def render(self):
-        col, d = self.style
-        w, h = self.label.img.get_size()
-        a = self.label.font.get_ascent()
-
-        self.img.blit(self.label.img, (h, 0))
-
-        pygame.draw.rect(self.img, (0, 0, 0, 0), Rect(0, 0, a, a))
-        pygame.draw.ellipse(self.img, Color('black'), Rect(0, 0, a, a), 1)
-        if self.state:
-            pygame.draw.ellipse(self.img, Color('black'), Rect(3, 3, a-6, a-6), 0)
-
 class SliderObj:
     """Define a slider object."""
     options = {
@@ -1185,17 +1166,18 @@ class SliderObj:
         'x1': 100,
         'dx': 1,
         'size': (100,30),
-        'orientation': 0,  # 0 = horizontal, 1=vertical
+        'orientation': 0,  # 0=horizontal, 1=vertical
+        'slider_style': (Color('blue'), Color('white'), 4, 2), 
+        'slider_size': (10, 20),
+        'slider_type': 0,  # 0=rectangle 1=circle
     }
     style_label = (Color('black'))
-    style_slider = (Color('blue'), 0, 2)  # color, slider, line
 
     def __init__(self, **options):
         # update existing SliderObj options, without adding new ones
         for k in options:
             if k in SliderObj.options:
                 SliderObj.options[k] = options[k]
-
         self.__dict__.update(SliderObj.options)
 
         self.x = (self.x1 + self.x0)/2
@@ -1208,35 +1190,63 @@ class SliderObj:
 
     def render(self):
         w, h = self.size
-        col = SliderObj.style_label
+        col, col2, d, d2 = self.slider_style
+        w0, h0 = self.slider_size
+
         img_x0 = self.font.render(str(self.x0), True, col)
         img_x1 = self.font.render(str(self.x1), True, col)
-        img_x  = self.font.render(str(self.x), True, col, Color('white'))
+        img_x  = self.font.render(f'{self.x:.1f}', True, col)
         
         rect_x0 = img_x0.get_rect()
         rect_x1 = img_x1.get_rect()
-        rect_x0.bottomleft = (0, h)
+        rect_x = img_x.get_rect()
+
+        if self.orientation == 0:
+            rect_x0.bottomleft = (0, h)
+        else:
+            rect_x0.bottomleft = (0, h)
+
         if self.orientation == 0:
             rect_x1.bottomright = w, h
-        
-        self.slider_rect = img_x.get_rect()
-        x2 = (w, h)[self.orientation]
-        slider_x = x2 * (self.x - self.x0) // (self.x1 - self.x0 + 10)
+        else:
+            rect_x1.topleft = 0, 0//2
 
-        self.slider_rect.center = ((slider_x, h//2), (w//2, h-slider_x))[self.orientation]
+        if self.orientation == 0:
+            rect_x.midbottom = w//2, h
+        else:
+            rect_x.midleft = 0, h//2
+        
+        if self.orientation == 0:
+            self.slider_rect = Rect(0, 0, w0, h0)
+        else:
+            self.slider_rect = Rect(0, 0, h0, w0)
+
+        if self.orientation == 0:
+            self.slider_rect.topleft = (self.x-self.x0) / (self.x1-self.x0) * (w-w0), 0
+        else:
+            self.slider_rect.topright = w, (self.x1-self.x) / (self.x1-self.x0) * (h-w0)
 
         self.img.fill((0, 0, 0, 0))
         self.img.blit(img_x0, rect_x0)
         self.img.blit(img_x1, rect_x1)
+        self.img.blit(img_x, rect_x)
         
-        col, d, d1 = SliderObj.style_slider
-        p0 = ((0, h//2), (w//2, 0))[self.orientation]
-        p1 = ((w, h//2), (w//2, h))[self.orientation]
+        if self.orientation == 0:
+            p0 = 0, h0//2
+            p1 = w, h0//2
+        else:
+            p0 = w-h0//2, 0
+            p1 = w-h0//2, h
 
-        pygame.draw.line(self.img, col, p0, p1, d1)
-        self.slider_rect.inflate_ip(2, 2)
-        self.img.blit(img_x, self.slider_rect)
-        pygame.draw.rect(self.img, col, self.slider_rect, 1)
+        pygame.draw.line(self.img, col, p0, p1, d)
+
+        if self.slider_type == 0:
+            pygame.draw.rect(self.img, col2, self.slider_rect)
+            pygame.draw.rect(self.img, col, self.slider_rect, d2)
+        else:
+            pygame.draw.ellipse(self.img, col2, self.slider_rect)
+            pygame.draw.ellipse(self.img, col, self.slider_rect, d2)
+
 
     def do_event(self, event):
         keys = {K_DOWN:-1, K_LEFT:-1, K_UP:1, K_RIGHT:1}
@@ -1250,14 +1260,16 @@ class SliderObj:
                 self.x = max(self.x0, min(self.x + dx, self.x1))
                 self.render()
 
-        if event.type == MOUSEMOTION:
-            x = event.pos[0] - self.rect.x
-            y = event.pos[1] - self.rect.y
-            
-            if self.slider_rect.collidepoint(x, y):
-                self.slider_rect.move_ip(event.rel)
-                self.render()
-                print(event)
+        if event.type == MOUSEMOTION and event.buttons[0] == 1:
+            dx, dy = event.rel
+            w, h = self.size
+            x = self.x1 - self.x0
+            if self.orientation == 0:
+                self.x += (dx/w)*x
+            else:
+                self.x += (-dy/h)*x
+            self.x = max(self.x0, min(self.x, self.x1))
+            self.render()
 
 class Slider(Node):
     def __init__(self, **options):
@@ -1268,26 +1280,6 @@ class Slider(Node):
 
     def do_event(self, event):
         self.slider.do_event(event)
-
-class TextMenu(Text):
-    """Select a text item from an items list."""
-    def __init__(self, items, i=0, **options):
-        super().__init__(items[i], **options)
-        self.items = items
-        self.n = len(items)
-        self.i = i
-
-    def do_event(self, event):
-        if event.type == KEYDOWN:
-            if event.key == K_RETURN:
-                #App.scene.focus = None
-                exec(self.cmd)
-            if event.key == K_RIGHT:
-                self.i = (self.i + 1) % self.n
-            if event.key == K_LEFT:
-                self.i = (self.i - 1) % self.n
-            self.text = self.items[self.i]
-            self.render()
 
 class Spinbox(Node):
     """Input a number."""
@@ -1356,25 +1348,6 @@ class Ellipse(Rectangle):
             pygame.draw.ellipse(self.img0, self.fg, Rect(0, 0, *self.rect.size), 0)
         pygame.draw.ellipse(self.img0, self.bg, Rect(0, 0, *self.rect.size), self.thickness)
         self.img = self.img0.copy()
-
-
-class Button(Text):
-    """Create a button object with command.""" 
-    options = { 'border': 2,
-                'bg': Color('gray'),
-                'size': (160, 40),
-                'autosize': False,
-                'align': (1, 1),
-        }
-
-    def __init__(self, text='Button', cmd='',  **options):
-        super().__init__(text, **Button.options)
-        self.cmd = cmd
-
-    def do_event(self, event):
-        super().do_event(event)
-        if event.type == MOUSEBUTTONDOWN:
-            exec(self.cmd)
 
 class Board(Node):
     """Draw a mxn board grid with m lines and n columns.
@@ -1727,10 +1700,6 @@ if __name__ == '__main__':
     Scene('Scene shortcuts', shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
     Text('Pressing "1" prints 1111111 to the console')
 
-    Scene(caption='ListBox', bg=Color('cyan'), shortcuts={(K_1, KMOD_NONE):'print(1111111)'}, remember=False)
-    Text('TextMenu')
-    TextMenu(['Amsterdam', 'Berlin', 'Calcutta', 'Paris', 'Tokyo'], cmd='print(self.text)')
-
     Scene(caption='ListBox')
     ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
 
@@ -1801,11 +1770,6 @@ if __name__ == '__main__':
     
     Scene(caption='Buttons', bg=Color('beige'))
     Text('Buttons')
-    #Text('Text', size=(200,40), bg=Color('gray'), autosize=False, v_align=1, h_align=1, cmd='print(self, self.text)')
-    Button('print(scene)', cmd='print(App.scene)')
-    Button('print(123)', cmd='print(123)')
-    Button(file='../animals/cat-icon.png', size=(100, 100), pos=(300, 20))
-    Text('Buttons')
     
     Scene(caption='Board - number puzzle')
     b = Board(m=4, n=4)
@@ -1816,28 +1780,21 @@ if __name__ == '__main__':
     b.render()
 
     Scene('TextObj')
-    Text('TextObj', size=(200, 25))
+    Text('TextObj', size=(150, 25))
     Text('underline', underline=True)
     Text('italic', italic=True)
     Text('bold', bold=True)
     Text('red', fontcolor=Color('red'))
-    Text('size=48', fontsize=48)
+    Text('size=48', fontsize=48, keep=True)
     
-    Scene('Text alignment')
-    Text('Text alignment', autosize=True, fontsize=24, underline=False, italic=False, bold=False)
-    for i in range(3):
-        j = 0
-        Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False, pos=(20+i*170, 50))
-        for j in range(1, 3):
-            Text(f'align=({i}, {j})', align=(i, j), size=(150, 40), autosize=False)
-
     names = ['Charlie', 'Daniel', 'Tim', 'Jack']
     cities = ['Amsterdam', 'Berlin', 'Cardiff', 'Dublin', 'Edinbourgh', 'Fargo', 'Greenwich', 
         'Harrington', 'Melbourne', 'New York', 'Oslo', 'Paris']    
     constants = dir(pygame.locals)
     
     Scene('ListBox')
-    Text('Text alignement: left, center, right', fontsize=24, autosize=True)
+    Text('Text alignement: left, center, right', fontsize=24, width=0, 
+        fontcolor=Color('black'), italic=False, bold=False, underline=False)
     ListBox(names, cmd='print(self.item)')
     ListBox(cities, dir=(1, 0), wrap=True, align=1, mode=1)
     ListBox(constants, width=300, align=2, wrap=False, mode=2)
@@ -1854,18 +1811,6 @@ if __name__ == '__main__':
     ListBox(cities, dir=(1, 0), wrap=True)
     ListBox(constants, width=300, align=2, wrap=False)
 
-    Scene('Slider')
-    Text('Horizontal slider')
-    Slider()
-    Slider(size=(200, 20), x0=-50, x1=50)
-    Slider(size=(300, 50), x0=0, x1=10, dx=1)
-
-    Scene('Slider')
-    Text('Vertical slider')
-    Slider(orientation=1, size=(50, 200), dir=(1, 0))
-    Slider()
-    Slider()
-
     Scene('Checkbox')
     for x in ('Monday', 'Tuesday', 'Wednesday'):
         Checkbox(text=x, cmd='print(self, self.state)')
@@ -1875,12 +1820,12 @@ if __name__ == '__main__':
         Radiobutton(text=x)
 
     Scene('Multi-line text') 
-    TextLines('align=0\nThis is text is extending over\nmultiple lines')
+    TextLines('align=0\nThis is text is extending over\nmultiple lines', align=0, width=400)
     TextLines('align=1\nThis is text is extending over\nmultiple lines', align=1)
     TextLines('align=2\nThis is text is extending over\nmultiple lines', align=2)    
 
     Scene('Multi-line text') 
-    TextLines('This is text extending\nover multiple lines', fontcolor=Color('red'))
+    TextLines('This is text extending\nover multiple lines')
     TextLines('interline=1.5\nThis is text is extending over\nmultiple lines', align=1, interline=1.5)
     TextLines('interline=0.8\nThis is text is extending over\nmultiple lines', align=2, interline=0.8)        #\nScene('ListMenu')
     # ListBox(['Charlie', 'Daniel', 'Tim', 'Jack'], cmd='print(self.item)')
@@ -1889,24 +1834,46 @@ if __name__ == '__main__':
     Rectangle(fg=Color('yellow'), thickness=10)
     Rectangle(fg=Color('cyan'))
     Rectangle(fg=None)
+
+    Scene('TextEdit - editable text')
+    EditableText('This is left-aligned editable text', align=0, width=400, fontsize=24)
+    EditableText('This is centered editable text', align=1) 
+    EditableText('This is right-aligned editable text', align=2) 
+    EditableText('This text has a cmd fonction', cmd='print(self.text)') 
     
+    Scene('Text - alignement and autosize')
+    Text('left (align=0)', align=0, width=300)
+    Text('center (align=1)', align=1)
+    Text('right (align=2)', align=2)
+    Text('fontcolor=blue', fontcolor=Color('blue'))
+    Text('background=cyan', bg=Color('cyan'))
+    Text('autosize (width=0)', width=0)
+
+    Scene('Buttons')
+    Button(file='../../images/ui/blue_button00.png', cmd='print(self, self.state)')
+    Button('Start', cmd='print(self, self.state)')
+    Button('Stop')
+    Node(file='../../images/ui/green_button00.png', cmd='print(123)', pos=(200, 20))
+    Node(file='../../images/ui/red_button00.png')
+    Node(file='../../images/ui/blue_boxCheckmark.png', size=(38, 36))
+    Node(file='../../images/ui/blue_boxCross.png')
+    
+    Scene('Slider')
+    Text('Horizontal slider')
+    Slider(size=(100, 40))
+    Slider(size=(200, 40), x0=-50, x1=50, dx=10)
+    Slider(size=(300, 30), x0=0, x1=10, dx=1, slider_type=1, slider_size=(14, 14))
+
+    Scene('Slider')
+    Text('Vertical slider')
+    Slider(orientation=1, size=(40, 200), dir=(1, 0))
+    Slider(size=(40, 100))
+    Slider(size=(40, 150))
+
     Scene('Spinbox')
     Spinbox()
     Spinbox(val=7)
     Spinbox(lbl='max=100', max=100, fontsize=36)
     Spinbox(lbl='inc=10', inc=10)
-
-    Scene('TextEdit - editable text')
-    EditableText('This is left-aligned editable text', fontcolor=Color('black'), fontsize=24, width=400)
-    EditableText('This is centered editable text', alignment=1) 
-    EditableText('This is right-aligned editable text', alignment=2) 
-    
-    EditableText('This text has a cmd fonction', cmd='print(self.text)') 
-    
-    Scene('Text2 - alignement')
-    Text2('left', alignment=0)
-    Text2('center', alignment=1)
-    Text2('right', alignment=2, bg=Color('cyan'))
-    Text2('autosize', width=0)
 
     app.run()
