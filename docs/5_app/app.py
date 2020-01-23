@@ -692,11 +692,15 @@ class EditableTextObj(TextObj):
     selection_style = Color('pink'), 0
     blink_rate = 600, 400   # interval, on_time
     
-    def __init__(self, text='EditableText', cmd='', **options):
+    def __init__(self, text='Text', cmd='', **options):
         super().__init__(text, **options)
 
         # Set cursor index to the end of text string
         self.cmd = cmd
+        self.set_text(text)
+
+    def set_text(self, text):
+        self.text = text
         self.i = len(self.text)
         self.i2 = self.i
         self.set_char_positions()
@@ -773,7 +777,7 @@ class EditableTextObj(TextObj):
                 i2 += 1
 
         self.i = i2
-        self.i2 = i+1 if self.text[i]==' ' else i
+        self.i2 = i+1 if i<n and self.text[i]==' ' else i
 
     def select_all(self):
         """Select the whole text."""
@@ -784,8 +788,6 @@ class EditableTextObj(TextObj):
         """Move cursor, handle selection, add/backspace text, copy/paste."""
         if event.type == KEYDOWN:
             if event.key == K_RETURN:
-                App.scene.focus = None
-                print(self.cmd)
                 try:
                     exec(self.cmd)
                 except:
@@ -868,7 +870,7 @@ class EditableTextObj(TextObj):
 
 class EditableText(Node):
     """Create an editable text node."""
-    def __init__(self, text='CursorText', **options):
+    def __init__(self, text='Text', **options):
         super().__init__(**options)
 
         self.txt = EditableTextObj(text, **options)
@@ -942,7 +944,6 @@ class Button(Node):
                 self.label.text = 'OFF'
             self.render()
 
-
 class Toggle:
     """Add toggle button behavior."""
 
@@ -961,7 +962,6 @@ class Toggle:
         elif event.type == KEYDOWN:
             if event.key == K_RETURN:
                 self.switch_state()
-
 
 class Checkbox(Toggle, Node):
     options = {
@@ -1281,6 +1281,40 @@ class Slider(Node):
     def do_event(self, event):
         self.slider.do_event(event)
 
+class NumInput(EditableText):
+    options = { 'min': 0, 
+                'max': 100,
+                'inc': 1,
+                'val': 0,
+                }
+    def __init__(self, **options):
+        self.set_options(NumInput, options)
+        super().__init__(str(self.val), align=2, **options)
+
+    def do_event(self, event):
+        super().do_event(event)
+
+        try:
+            val = int(self.txt.text)
+        except:
+            val = self.min
+
+        self.val = max(self.min, min(val, self.max))
+        self.txt.set_text(str(self.val))
+
+        if event.type == KEYDOWN:
+            keys = {K_DOWN:-1, K_UP:1}
+            if event.key in keys:
+                inc = keys[event.key] * self.inc
+                if event.mod & KMOD_ALT:
+                    inc *= 10
+                if event.mod & KMOD_META:
+                    inc *= 100
+                self.val = max(self.min, min(self.val + inc, self.max))
+                
+                self.txt.set_text(str(self.val))
+
+
 class Spinbox(Node):
     """Input a number."""
     options = { 'min': 0,
@@ -1293,8 +1327,9 @@ class Spinbox(Node):
     def __init__(self, **options):
         super().__init__(**options)
         self.set_options(Spinbox, options)
+
         self.label = TextObj(self.lbl, **options)
-        self.value = TextObj(str(self.val))
+        self.value = EditableTextObj(str(self.val), bg=Color('cyan'), align=2)
         x0, x1 = self.w
         h = self.label.img.get_size()[1]
         self.img = pygame.Surface((x0+x1, h))
@@ -1871,9 +1906,17 @@ if __name__ == '__main__':
     Slider(size=(40, 150))
 
     Scene('Spinbox')
+
+    
     Spinbox()
     Spinbox(val=7)
     Spinbox(lbl='max=100', max=100, fontsize=36)
     Spinbox(lbl='inc=10', inc=10)
+
+    Scene('Numeric input')
+    Text('Enter numeric input. Use UP/DOWN keys or write.', bg=None)
+    NumInput(width=100, bg=Color('cyan'))
+    NumInput(inc=2)
+    NumInput(inc=5)
 
     app.run()

@@ -17,6 +17,7 @@ approach to making apps.
 
    1_intro/intro
    2_draw/draw
+   rect/rect
    3_image/image
    4_text/text
    5_app/app

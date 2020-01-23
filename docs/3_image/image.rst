@@ -1,5 +1,5 @@
-Working with images
-===================
+Work with images
+================
 
 Load an image
 -------------
@@ -63,6 +63,8 @@ by the amount of relative movement (event.rel)::
 This is the whole code:
 
 .. literalinclude:: image1.py
+
+:download:`image1.py<image1.py>`
 
 
 Rotate and Scale the image
@@ -215,3 +217,5 @@ In order to give visual feedback for the mouse action when transforming an image
 Here is the full code.
 
 .. literalinclude:: image2.py
+
+:download:`image2.py<image2.py>`

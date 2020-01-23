@@ -63,6 +63,9 @@ and next to it three oulined overlapping ellipses with increasing line width::
 
 .. image:: draw2.png
 
+:download:`draw2.py<draw2.py>`
+
+
 Detect the mouse
 ----------------
 
@@ -141,6 +144,8 @@ Finally we draw it, and at the very last we update the screen::
 
 .. image:: mouse2.png
 
+:download:`mouse2.py<mouse2.py>`
+
 
 Draw multiple shapes
 --------------------
@@ -178,6 +183,8 @@ is in the process of being drawn (blue, thickness=1)::
 Here is the complete file:
 
 .. literalinclude:: mouse3.py
+
+:download:`mouse3.py<mouse3.py>`
 
 Draw a pologyon line with the mouse
 -----------------------------------
@@ -228,3 +235,5 @@ Pressing the ESCAPE key will remove the last point in the list::
 Here is the complete file:
 
 .. literalinclude:: mouse4.py
+
+:download:`mouse4.py<mouse4.py>`

@@ -1,30 +1,33 @@
 import pygame
 from pygame.locals import *
 
-width = 640
-height = 320
-speed = [2, 2]
+size = 640, 320
+width, height = size
 GREEN = (150, 255, 150)
-running = True
+RED = (255, 0, 0)
 
 pygame.init()
-screen = pygame.display.set_mode((width, height))
+screen = pygame.display.set_mode(size)
+running = True
+
 ball = pygame.image.load("ball.gif")
-ballrect = ball.get_rect()
+rect = ball.get_rect()
+speed = [2, 2]
 
 while running:
     for event in pygame.event.get():
         if event.type == QUIT: 
             running = False
 
-    ballrect = ballrect.move(speed)
-    if ballrect.left < 0 or ballrect.right > width:
+    rect = rect.move(speed)
+    if rect.left < 0 or rect.right > width:
         speed[0] = -speed[0]
-    if ballrect.top < 0 or ballrect.bottom > height:
+    if rect.top < 0 or rect.bottom > height:
         speed[1] = -speed[1]
 
     screen.fill(GREEN)
-    screen.blit(ball, ballrect)
-    pygame.display.flip()
+    pygame.draw.rect(screen, RED, rect, 1)
+    screen.blit(ball, rect)
+    pygame.display.update()
 
 pygame.quit()
