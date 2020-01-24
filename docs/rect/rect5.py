@@ -1,7 +1,6 @@
 from rect import *
 
-rect0 = Rect(50, 60, 200, 80)
-rect = rect0.copy()
+rect0 = rect.copy()
 
 while running:
     for event in pygame.event.get():

@@ -1,6 +1,5 @@
 from rect import *
 
-rect = Rect(50, 60, 200, 80)
 moving = False
 
 while running:

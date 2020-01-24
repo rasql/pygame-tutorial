@@ -172,6 +172,57 @@ if the rectangle is outside of the application window.
 :download:`rect8.py<rect8.py>`
 
 
+Colliding points
+----------------
+
+The method ``rect.collidepoint(p)`` checks if a rectangle ``rect``
+collides with point ``p``.
+In the following program we create 100 random points and color them red
+if they fall inside the rectangle.
+
+Each time the R key is pressed 100 new random points are created.
+
+.. image:: rect9.png
+
+.. literalinclude:: rect9.py
+
+:download:`rect9.py<rect9.py>`
+
+
+Colliding rectangles
+--------------------
+
+The method ``rect.colliderect(r)`` checks if a rectangle ``rect``
+collides with another rectangle ``r``.
+In the following program we create 50 random rectangles and color them red
+if they collide with the green rectangle.
+
+Each time the R key is pressed 50 new random rectangles are created.
+
+.. image:: rect10.png
+
+.. literalinclude:: rect10.py
+
+:download:`rect10.py<rect10.py>`
+
+
+Overlapping rectangles
+----------------------
+
+The method ``rect.colliderect(r)`` checks if a rectangle ``rect``
+collides with another rectangle ``r``.
+If we want to know if there are any two overlapping rectangles,
+then we have to compare each rectangle with each other one.
+The number of comparisons increases as power of 2.
+
+Each time the R key is pressed 20 new random rectangles are created.
+
+.. image:: rect11.png
+
+.. literalinclude:: rect11.py
+
+:download:`rect11.py<rect11.py>`
+
 
 The common code
 ---------------
