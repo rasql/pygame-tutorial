@@ -4,7 +4,7 @@ Work with images
 Load an image
 -------------
 
-The ``pyagme.image`` module provides methods for loading and saving 
+The ``pygame.image`` module provides methods for loading and saving
 images. The method ``load()`` loads an image from the file system
 and returns a Surface object. The method ``convert()`` optimizes the 
 image format and makes drawing faster::
@@ -40,7 +40,7 @@ Then we blit the image, draw a red rectangle around it and finally update the sc
 Move the image with the mouse
 -----------------------------
 
-At the beginning of the programm we set a boolean variable ``moving`` to False.
+At the beginning of the program we set a boolean variable ``moving`` to False.
 Only when the mouse button is pressed, and when the mouse position is within the image (collidepoint) we set it to True::
 
     elif event.type == MOUSEBUTTONDOWN:
@@ -82,7 +82,7 @@ In order to show the image rectangle, we add a green border to the original imag
     rect0 = img0.get_rect()
     pygame.draw.rect(img0, GREEN, rect0, 1)
 
-Then we place the place the image in the center of the screen::
+Then we place the image in the center of the screen::
 
     center = w//2, h//2
     img = img0
@@ -94,9 +94,9 @@ First we define the global variables **scale** and **angle**::
     angle = 0
     scale = 1
 
-We use the R key to increment rotation by 10 degrees and 
-(decrement if the SHIFT key is pressed). The function ``rotozoom()`` allows to combine
-rotation and scaling. We always transform the orignial image (img0). Repeated rotation or scaling of 
+We use the R key to increment rotation by 10 degrees
+(or decrement if the SHIFT key is pressed). The function ``rotozoom()`` allows us to combine
+rotation and scaling. We always transform the original image (img0). Repeated rotation or scaling of
 an image would degrade its quality::
 
     if event.type == KEYDOWN:
@@ -118,7 +118,7 @@ is pressed)::
             img = pygame.transform.rotozoom(img0, angle, scale)
 
 As the image is transformed the bounding rectangle changes size. It must be 
-recalulated and placed at the center again::
+recalculated and placed at the center again::
 
     rect = img.get_rect()
     rect.center = center
@@ -150,14 +150,14 @@ and the V key to flip the image vertically::
 Detect edges with the Laplacian
 -------------------------------
 
-The fonction ``laplacien(img)`` allows to detect the outline of the image::
+The function ``laplacian(img)`` allows us to detect the outline of the image::
 
     elif event.key == K_l:
         img = pygame.transform.laplacian(img)
 
 .. image:: image2.png
 
-The fonction ``scale2x(img)`` doubles the size of a pixel::
+The function ``scale2x(img)`` doubles the size of a pixel::
 
     elif event.key == K_2:
         img = pygame.transform.scale2x(img)
@@ -172,7 +172,7 @@ At the beginning we import the ``math`` module::
 
     import math
 
-At the beginning we store the initial mouse position::
+We store the initial mouse position::
 
     mouse = pygame.mouse.get_pos()
 
@@ -186,8 +186,8 @@ We also calculate the center-mouse distance **d** ::
         y = mouse[1] - center[1]
         d = math.sqrt(x ** 2 + y ** 2)
 
-The ``atan2(y, x)`` math function allows to find the rotation angle. We need to 
-transform radians in degrees. From the distance mouse-center we calculate the 
+The ``atan2(y, x)`` math function allows us to find the rotation angle. We need to
+transform radians to degrees. From the distance mouse-center we calculate the
 scale argument::
 
         angle = math.degrees(-math.atan2(y, x))
@@ -196,8 +196,8 @@ scale argument::
         rect = img.get_rect()
         rect.center = center
 
-To finally draw the transformed image we first fille the whole screen background (GRAY), 
-blit the transformed image, surround it with a red rectangle.
+To finally draw the transformed image we first fill the whole screen background (GRAY),
+blit the transformed image, and surround it with a red rectangle.
 
 In order to give visual feedback for the mouse action when transforming an image, we
 

@@ -176,7 +176,7 @@ if the rectangle is outside of the application window.
 The common code
 ---------------
 
-The common has been placed to a separate file:
+The common code has been placed in a separate file:
 
 .. literalinclude:: rect.py
 

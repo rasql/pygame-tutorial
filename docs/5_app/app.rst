@@ -4,10 +4,10 @@ Making apps with Pygame
 In this section we are going to create applications and games with Pygame. From here on we will be 
 using an object-oriented programming (OOP) approach.
 
-Pygame only allows to create one single window. Different from other applications,
+Pygame only allows us to create one single window. Different from other applications,
 those based on Pygame cannot have multiple windows. If for example dialog window is needed, it must be displayed within the main window.
 
-Within an application we provide multples scenes (environments, rooms, or levels).
+Within an application we provide multiple scenes (environments, rooms, or levels).
 Each scene contains different objects such as:
 
 - text
@@ -24,7 +24,7 @@ the ``pygame`` module, as well as a series of useful constants::
     import pygame
     from pygame.locals import *
 
-Then we create define the App class which initializes Pygame and opens a the app 
+Then we define the App class which initializes Pygame and opens the app
 window::
 
     class App:
@@ -48,7 +48,7 @@ Further we have to define the main event loop::
                     App.running = False
         pygame.quit()
 
-At the end of the module we run a demo, if the programm is run directly and not 
+At the end of the module we run a demo, if the program is run directly and not
 imported as a module::
 
     if __name__ == '__main__':
@@ -74,7 +74,7 @@ instantiate text objects::
             self.set_font()
             self.render()
 
-The ``Font`` object needs to be created initially and everytime
+The ``Font`` object needs to be created initially and every time
 the font name or the font size changes::
 
     def set_font(self):
@@ -116,10 +116,10 @@ intercept the S key and print a message::
         if event.key == K_s:
             print('Key press S')
 
-If the application has many shortcuts, the keys alone may not be enoufht and modifier keys (cmd, ctrl, alt, shift) can be used
+If the application has many shortcuts, the keys alone may not be enough and modifier keys (cmd, ctrl, alt, shift) can be used
 to increase the number of combinations.
 The easiest way to represent these shortcuts is under the form of a dictionary,
-where the key/mod tuples are associated with a command strings. 
+where the key/mod tuples are associated with command strings.
 The dictionary has this shape::
 
     self.shortcuts = {
@@ -217,7 +217,7 @@ and make this scene the current scene::
         App.scenes.append(self)
         App.scene = self
 
-Then we set a scene id, which is kept as class attribute of the Scene class.
+Then we set a scene id, which is kept as a class attribute of the Scene class.
 Then we set the nodes list to the empty list and set the background color::
 
         # Set the instance id and increment the class id
@@ -324,7 +324,7 @@ node gap or node direction can be changed::
 
 Here we change the node placement direction to horizontal, dir=(0, 1).
 At any time we can change the node position or gap.
-We can place the inital node position at (0, 0) and change the gap to (0, 0)::
+We can place the initial node position at (0, 0) and change the gap to (0, 0)::
 
     Scene(caption='Nodes - horizontal placement')
     Node(dir=(1, 0), pos=(0, 0), gap=(0, 0))
@@ -337,7 +337,7 @@ We can place the inital node position at (0, 0) and change the gap to (0, 0)::
 
 .. image:: node1b.png
 
-The placement can also be diagonal by chosing the direction vector
+The placement can also be diagonal by choosing the direction vector
 dir = (1, 1)::
 
     Scene(caption='Nodes - diagonale placement')

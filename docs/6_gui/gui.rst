@@ -6,10 +6,10 @@ The graphical user interface (GUI) consists of all the elements the user can int
 
 - text
 - button
-- checkbutton
-- radiobutton
+- checkbox
+- radio button
 - menu (pop-up, pull-down)
-- listboxe
+- listbox
 - slider
 
 Text attributes
@@ -87,7 +87,7 @@ In the vertical direction the text image can be aligned at the top, middle or bo
     self.img0.blit(self.text_img, (x, y))
     self.img = self.img0.copy()
 
-The image `img0` is the orignal, used for scaling. The `img` is the one used for drawing.
+The image `img0` is the original, used for scaling. The `img` is the one used for drawing.
 
 Here is a code example:
 
@@ -127,9 +127,9 @@ The class attribute ``TextEdit.cursor`` defines the cursor color and width::
 
     cursor = Color('red'), 2  # cursor color and width
 
-Inside the conxtructor, the cursor is placed at the end of the text.
+Inside the constructor, the cursor is placed at the end of the text.
 A cursor image is created and filled with the cursor color. The cursor rectangle
-is initally placed at the end of the text::
+is initially placed at the end of the text::
 
     col, d = TextEdit.cursor
     self.cursor = len(self.text)
@@ -142,7 +142,7 @@ Get the character index
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 The cursor is represented as an integer index in the range [0 .. n] where n is the 
-lenght of the text. Each letter has a different width. The list
+length of the text. Each letter has a different width. The list
 ``self.char_positions`` remembers the x position of each letter::
 
     def set_char_positions(self):
@@ -165,9 +165,9 @@ When we click with the mouse anywhere in the text, we need to know the character
 Move the cursor
 ^^^^^^^^^^^^^^^
 
-The arrow keys allow to move the cursor to the left or to the right.
+The arrow keys allow us to move the cursor to the left or to the right.
 The argument ``d`` is 1 or -1 and indicates the direction of movement. 
-The cursor movement is limit to the interval [0 .. n]::
+The cursor movement is limited to the interval [0 .. n]::
 
     def move_cursor(self, d):
         """Move the cursor by d charactors, and limit to text length."""

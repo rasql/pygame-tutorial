@@ -1,8 +1,9 @@
 Drawing graphics primitives
 ============================
 
-The ``pygame.draw`` module allows to draw simple shapes to a surface. 
-This can be the screen surface or any Surface object such as an image or drawing:
+The ``pygame.draw`` module allows us to draw simple shapes to a surface.
+This can be the screen surface or any Surface object such as an image or drawing.
+The available shapes include:
 
 - rectangle
 - polygon
@@ -11,9 +12,9 @@ This can be the screen surface or any Surface object such as an image or drawing
 
 The functions have in common that they:
 
-- take a **Surface** object as first argument
-- take a color as second argument
-- take a width parameter as last argument
+- take a **Surface** object as the first argument
+- take a color as the second argument
+- take a width parameter as a keyword argument
 - return a **Rect** object which bounds the changed area
 
 the following format::
@@ -28,7 +29,7 @@ Draw solid and outlined rectangles
 ----------------------------------
 
 The following draws first the background color and then adds three overlapping solid rectangles
-and next to it three oulined overlapping rectangles with increasing line width::
+and next to them three outlined overlapping rectangles with increasing line width::
 
     screen.fill(background)
     pygame.draw.rect(screen, RED, (50, 20, 120, 100))
@@ -41,14 +42,14 @@ and next to it three oulined overlapping rectangles with increasing line width::
 
 .. image:: draw1.png
 
-Try to modifiy the parameters and play with the drawing function.
+Try to modify the parameters and play with the drawing function.
 
 
 Draw solid and outlined ellipses
 --------------------------------
 
 The following code draws first the background color and then adds three overlapping solid ellipses
-and next to it three oulined overlapping ellipses with increasing line width::
+and next to them three outlined overlapping ellipses with increasing line width::
 
     screen.fill(background)
     pygame.draw.ellipse(screen, RED, (50, 20, 160, 100))
@@ -70,7 +71,7 @@ Detect the mouse
 ----------------
 
 Pressing the mouse buttons produces MOUSEBUTTONDOWN and MOUSEBUTTONUP events.
-The flollowing code in the event loop detects them and writes the event to the console::
+The following code in the event loop detects them and writes the event to the console::
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -80,7 +81,7 @@ The flollowing code in the event loop detects them and writes the event to the c
         elif event.type == MOUSEBUTTONUP:
             print(event)   
 
-Pressing the mouse buttons produces this kind of events::
+Pressing the mouse buttons produces these kinds of events::
 
     <Event(5-MouseButtonDown {'pos': (123, 88), 'button': 1, 'window': None})>
     <Event(6-MouseButtonUp {'pos': (402, 128), 'button': 1, 'window': None})>
@@ -88,12 +89,12 @@ Pressing the mouse buttons produces this kind of events::
     <Event(6-MouseButtonUp {'pos': (189, 62), 'button': 3, 'window': None})>
 
 Just moving the mouse produces a MOUSEMOTION event.
-The following code detects them an writes the event to the console::
+The following code detects them and writes the event to the console::
 
         elif event.type == MOUSEMOTION:
             print(event)
 
-Moving the mosue produces this kind of event::
+Moving the mouse produces this kind of event::
 
     <Event(4-MouseMotion {'pos': (537, 195), 'rel': (-1, 0), 'buttons': (0, 0, 0), 'window': None})>
     <Event(4-MouseMotion {'pos': (527, 189), 'rel': (-10, -6), 'buttons': (0, 0, 0), 'window': None})>
@@ -103,7 +104,7 @@ Moving the mosue produces this kind of event::
 Draw a rectangle with the mouse
 -------------------------------
 
-We can use this three events to draw a rectangle on the screen.
+We can use these three events to draw a rectangle on the screen.
 We define the rectangle by its diagonal start and end point.
 We also need a flag which indicates if the mouse button is down and if we are drawing::
 
@@ -112,7 +113,7 @@ We also need a flag which indicates if the mouse button is down and if we are dr
     drawing = False
 
 When the mouse button is pressed, we set start and end to the current mouse position
-and indciate with the flag that the drawing mode has started::
+and indicate with the flag that the drawing mode has started::
 
     elif event.type == MOUSEBUTTONDOWN:
         start = event.pos
@@ -169,7 +170,7 @@ MOUSEBUTTONUP event, we create a rectangle and append it to the rectangle list::
         drawing = False
 
 In the drawing code, we first fill the background color, then iterate through the 
-rectagle list to draw the objects (red, thickness=3), and finally we draw the current rectangle which
+rectangle list to draw the objects (red, thickness=3), and finally we draw the current rectangle which
 is in the process of being drawn (blue, thickness=1)::
 
     screen.fill(GRAY)
