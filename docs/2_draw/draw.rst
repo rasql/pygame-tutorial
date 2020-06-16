@@ -186,7 +186,7 @@ Here is the complete file:
 
 :download:`mouse3.py<mouse3.py>`
 
-Draw a pologyon line with the mouse
+Draw a polygon line with the mouse
 -----------------------------------
 
 To draw a polygon line we need to add the points to a list of points.
