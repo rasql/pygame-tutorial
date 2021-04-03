@@ -48,7 +48,7 @@ Further we have to define the main event loop::
                     App.running = False
         pygame.quit()
 
-At the end of the module we run a demo, if the programm is run directly and not 
+At the end of the module we run a demo, if the program is run directly and not 
 imported as a module::
 
     if __name__ == '__main__':
