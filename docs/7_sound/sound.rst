@@ -7,7 +7,7 @@ Making sounds
 The ``pygame.mixer`` module allows to play compressed OGG files or uncompressed WAV files.
 
 This checks the initialization parameters and prints the number of channels available.
-It opens a sound object and prays it::
+It opens a sound object and plays it::
 
     print('init =', pygame.mixer.get_init())
     print('channels =', pygame.mixer.get_num_channels())
