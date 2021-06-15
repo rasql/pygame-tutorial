@@ -102,3 +102,4 @@ ENV/
 .vscode
 .pytest_cache
 docs/pattern
+packaging_tutorial

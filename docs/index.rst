@@ -24,6 +24,8 @@ approach to making apps.
    6_gui/gui
    7_sound/sound
    9_board/board
+   10_games/games
+   tiles/tiles
    sphinx
 
 Indices and tables
