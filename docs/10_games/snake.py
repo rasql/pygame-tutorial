@@ -22,7 +22,7 @@ class Snake(Shape):
         if event.key in d:
             print(event)
 
-class SnakeDemo(Game):
+class SnakeDemo(App):
     """Make a subclass of the Game class."""
     def __init__(self):
         super(SnakeDemo, self).__init__()

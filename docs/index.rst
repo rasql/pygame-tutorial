@@ -25,6 +25,7 @@ approach to making apps.
    7_sound/sound
    9_board/board
    10_games/games
+   10_games/breakout/breakout
    tiles/tiles
    sphinx
 
