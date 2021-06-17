@@ -26,6 +26,15 @@ class Sprite:
             self.image.fill(self.color)
         self.image0 = self.image.copy()
 
+    def set_pos(self, pos):
+        self.position = np.array(pos, dtype=float)
+        self.rect.center = pos
+ 
+    def set_angle(self, angle):
+        self.angle = angle
+        self.image = pygame.transform.rotate(self.image0, self.angle)
+        self.rect.size = self.image.get_size()
+
     def do(self, event):
         pass
 
