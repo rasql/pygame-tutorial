@@ -2,7 +2,7 @@ Board Games
 ===========
 
 In this section we create the framework for board games. 
-These games are based on a nxm grid. Each cell can have
+These games are based on a NxM grid. Each cell can have
 
 * text
 * color

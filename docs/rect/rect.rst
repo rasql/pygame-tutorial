@@ -227,7 +227,7 @@ Each time the R key is pressed 20 new random rectangles are created.
 The common code
 ---------------
 
-The common has been placed to a separate file:
+The common code has been placed in a separate file:
 
 .. literalinclude:: rect.py
 

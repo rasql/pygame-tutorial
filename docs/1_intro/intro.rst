@@ -5,7 +5,7 @@ Pygame is a multimedia library for Python for making games
 and multimedia applications.
 
 It is a wrapper around the SDL (Simple DirectMedia Layer) library.
-In this section we indroduce the basics of pygame functions without defining classes and objects.
+In this section we introduce the basics of pygame functions without defining classes and objects.
 
 
 Import the module
@@ -24,15 +24,15 @@ Pygame website to the console (as a side effect)::
 
 The Pygame import statement is always placed at the beginning of the program.
 It imports the pygame classes, methods and attributes into the current name space.
-Now this new methods can be called via ``pygame.method()``. 
+Now these new methods can be called via ``pygame.method()``.
 
-For exemple we can now initialize or quit **pygame** with the following command::
+For example we can now initialize or quit **pygame** with the following command::
 
     pygame.init()
     pygame.quit()
 
 The function ``display.set_mode()`` sets the screen size. It returns 
-a ``Surface`` object wich we assign to the variable ``screen``. 
+a ``Surface`` object which we assign to the variable ``screen``.
 This variable will be one of the most used variables.
 It represents the window we see::
 
@@ -62,14 +62,14 @@ The following is an infinite loop which prints all events to the console::
 
 Try to move the mouse, click a mouse button, or type something on the keyboard.
 Every action you do produces an event which will be printed on the console.
-This will look something like this::
+It will look something like this::
 
     <Event(4-MouseMotion {'pos': (173, 192), 'rel': (173, 192), 'buttons': (0, 0, 0), 'window': None})>
     <Event(2-KeyDown {'unicode': 'a', 'key': 97, 'mod': 0, 'scancode': 0, 'window': None})>
     <Event(3-KeyUp {'key': 97, 'mod': 0, 'scancode': 0, 'window': None})>
     <Event(12-Quit {})>
 
-As we are in an infite loop, it is impossible to quit this program from within the application.
+As we are in an infinite loop, it is impossible to quit this program from within the application.
 In order to quit the program, make the console the active window and type ``ctrl-C``.
 This will write the following message to the console::
 
@@ -98,7 +98,7 @@ If it occurs, we set ``running`` to ``False``::
 
     pygame.quit()
 
-Once the event loop, we call the ``pygame.quit()`` function to end the application
+Once the event loop ends, we call the ``pygame.quit()`` function to end the application
 correctly.
 
 .. image:: intro2.png
@@ -119,7 +119,7 @@ A total of 16 million different colors can be represented this way.
 .. image:: AdditiveColorMixing.png
    :scale: 50 %
 
-Let's define the base colors as tuples of the tree base values.
+Let's define the base colors as tuples of the three base values.
 Since colors are constants, we will write them using capitals.
 The absence of all colors results in black.
 The maximum value for all three components results in white.
@@ -129,13 +129,13 @@ Three identical intermediate values result in gray::
     GRAY = (127, 127, 127)
     WHITE = (255, 255, 255)
 
-The tree base colors are defined as::
+The three base colors are defined as::
 
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
 
-By mixing two base colors we obtained more colors::
+By mixing two base colors we obtain more colors::
 
     YELLOW = (255, 255, 0)
     CYAN = (0, 255, 255)
@@ -158,7 +158,7 @@ At this point nothing will be displayed. In order to show anything, the function
 Switch the background color
 ---------------------------
 
-At the beginning of the program we add a new veriable ``background``
+At the beginning of the program we add a new variable ``background``
 and initialize it to gray::
 
     background = GRAY
@@ -188,8 +188,8 @@ Pressing the R and G keys allows you to switch the background color.
 Import pygame.locals
 --------------------
 
-The ``pygame.locals`` module contains some 280 constants used and defined by pygme.
-Placing this statement at the beginning of your programm imports them all::
+The ``pygame.locals`` module contains some 280 constants used and defined by pygame.
+Placing this statement at the beginning of your program imports them all::
 
     import pygame
     from pygame.locals import *
@@ -221,10 +221,10 @@ Instead of writing ``pygame.KEYDOWN`` we can now just write ``KEYDOWN``.
 Use a dictionary to decode keys
 -------------------------------
 
-The easiest way to decode many keys, is to use a dictionary.
+The easiest way to decode many keys is to use a dictionary.
 Instead of defining many if-else cases, we just create a dictionary with the keyboard key entries.
-In this exemple we want to associate 8 different keys with 8 different background colors.
-At the beginning of the programm we define this key-color dictionary::
+In this example we want to associate 8 different keys with 8 different background colors.
+At the beginning of the program we define this key-color dictionary::
 
     key_dict = {K_k:BLACK, K_r:RED, K_g:GREEN, K_b:BLUE,
         K_y:YELLOW, K_c:CYAN, K_m:MAGENTA, K_w:WHITE}
@@ -236,7 +236,7 @@ Printing the dictionary to the console gives this result::
     {107: (0, 0, 0), 114: (255, 0, 0), 103: (0, 255, 0), 98: (0, 0, 255), 
     121: (255, 255, 0), 99: (0, 255, 255), 109: (255, 0, 255), 119: (255, 255, 255)}
 
-The keys are presented here with their ASCII code. For exaple the ASCII code for 
+The keys are presented here with their keycode. For example the keycode for
 ``k`` is 107. Colors are represented as tuples. The color black is represented as (0, 0, 0).
 
 The event loop now becomes very simple. 
@@ -256,7 +256,7 @@ Try to press the 8 specified keys to change the background color.
 Change the window caption
 -------------------------
 
-The fonction ``pygame.display.set_caption(title)`` allows to change the caption (title) 
+The function ``pygame.display.set_caption(title)`` allows us to change the caption (title)
 of the application window. We can add this to the event loop::
 
     if event.key in key_dict:
@@ -331,22 +331,24 @@ Then we move the rectangle and check the left/right and top/bottom borders::
     if rect.top < 0 or rect.bottom > height:
         speed[1] = -speed[1]
 
-Finaly we draw a green background, a red rectangle and the ball image::
+Finally we draw a green background, a red rectangle and the ball image::
 
     screen.fill(GREEN)
     pygame.draw.rect(screen, RED, rect, 1)
     screen.blit(ball, rect)
     pygame.display.update()
 
+When the event loop ends, close the application::
+
     pygame.quit()
 
-This is what the ball and the ``Rect`` outline looks:
+This is what the ball and the ``Rect`` outline looks like:
 
 .. image:: intro6.png
 
 :download:`ball.gif<ball.gif>`
 
 Try to understand what the program does.
-Then try to modify it's parameters.
+Then try to modify its parameters.
 
 :download:`intro6.py<intro6.py>`
