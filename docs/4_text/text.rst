@@ -20,7 +20,7 @@ A newline character is not rendered.
 Initialize a font
 -----------------
 
-Initializing the font can take a few seconds. On a MacBook Air the the creation of 
+Initializing the font can take a few seconds. On a MacBook Air the creation of 
 a system Font object::
 
     t0 = time.time()
