@@ -26,7 +26,7 @@ The Pygame import statement is always placed at the beginning of the program.
 It imports the pygame classes, methods and attributes into the current name space.
 Now this new methods can be called via ``pygame.method()``. 
 
-For exemple we can now initialize or quit **pygame** with the following command::
+For example we can now initialize or quit **pygame** with the following command::
 
     pygame.init()
     pygame.quit()
