@@ -11,11 +11,11 @@ while running:
     rect.move_ip(v)
 
     if rect.left < 0:
-        v[0] *= -1
+        v[0] *= 1
     if rect.right > width:
         v[0] *= -1
     if rect.top < 0:
-        v[1] *= -1
+        v[1] *= 1
     if rect.bottom > height:
         v[1] *= -1
    
