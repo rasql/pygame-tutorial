@@ -4,7 +4,7 @@ Work with images
 Load an image
 -------------
 
-The ``pyagme.image`` module provides methods for loading and saving 
+The ``pygame.image`` module provides methods for loading and saving 
 images. The method ``load()`` loads an image from the file system
 and returns a Surface object. The method ``convert()`` optimizes the 
 image format and makes drawing faster::
