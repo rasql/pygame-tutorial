@@ -150,14 +150,14 @@ and the V key to flip the image vertically::
 Detect edges with the Laplacian
 -------------------------------
 
-The fonction ``laplacien(img)`` allows to detect the outline of the image::
+The function ``laplacien(img)`` allows to detect the outline of the image::
 
     elif event.key == K_l:
         img = pygame.transform.laplacian(img)
 
 .. image:: image2.png
 
-The fonction ``scale2x(img)`` doubles the size of a pixel::
+The function ``scale2x(img)`` doubles the size of a pixel::
 
     elif event.key == K_2:
         img = pygame.transform.scale2x(img)
