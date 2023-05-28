@@ -5,7 +5,7 @@ Pygame is a multimedia library for Python for making games
 and multimedia applications.
 
 It is a wrapper around the SDL (Simple DirectMedia Layer) library.
-In this section we indroduce the basics of pygame functions without defining classes and objects.
+In this section we introduce the basics of pygame functions without defining classes and objects.
 
 
 Import the module
@@ -23,16 +23,16 @@ Pygame website to the console (as a side effect)::
     https://www.pygame.org/contribute.html
 
 The Pygame import statement is always placed at the beginning of the program.
-It imports the pygame classes, methods and attributes into the current name space.
+It imports the pygame classes, methods and attributes into the current namespace.
 Now this new methods can be called via ``pygame.method()``. 
 
-For exemple we can now initialize or quit **pygame** with the following command::
+For example we can now initialize or quit **pygame** with the following command::
 
     pygame.init()
     pygame.quit()
 
 The function ``display.set_mode()`` sets the screen size. It returns 
-a ``Surface`` object wich we assign to the variable ``screen``. 
+a ``Surface`` object which we assign to the variable ``screen``. 
 This variable will be one of the most used variables.
 It represents the window we see::
 
