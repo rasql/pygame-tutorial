@@ -26,7 +26,7 @@ The Pygame import statement is always placed at the beginning of the program.
 It imports the pygame classes, methods and attributes into the current name space.
 Now this new methods can be called via ``pygame.method()``. 
 
-For exemple we can now initialize or quit **pygame** with the following command::
+For example, we can now initialize or quit **pygame** with the following command::
 
     pygame.init()
     pygame.quit()
@@ -189,7 +189,7 @@ Import pygame.locals
 --------------------
 
 The ``pygame.locals`` module contains some 280 constants used and defined by pygme.
-Placing this statement at the beginning of your programm imports them all::
+Placing this statement at the beginning of your program imports them all::
 
     import pygame
     from pygame.locals import *
@@ -223,8 +223,8 @@ Use a dictionary to decode keys
 
 The easiest way to decode many keys, is to use a dictionary.
 Instead of defining many if-else cases, we just create a dictionary with the keyboard key entries.
-In this exemple we want to associate 8 different keys with 8 different background colors.
-At the beginning of the programm we define this key-color dictionary::
+In this example, we want to associate 8 different keys with 8 different background colors.
+At the beginning of the program we define this key-color dictionary::
 
     key_dict = {K_k:BLACK, K_r:RED, K_g:GREEN, K_b:BLUE,
         K_y:YELLOW, K_c:CYAN, K_m:MAGENTA, K_w:WHITE}

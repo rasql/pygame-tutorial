@@ -40,7 +40,7 @@ Then we blit the image, draw a red rectangle around it and finally update the sc
 Move the image with the mouse
 -----------------------------
 
-At the beginning of the programm we set a boolean variable ``moving`` to False.
+At the beginning of the program we set a boolean variable ``moving`` to False.
 Only when the mouse button is pressed, and when the mouse position is within the image (collidepoint) we set it to True::
 
     elif event.type == MOUSEBUTTONDOWN:
