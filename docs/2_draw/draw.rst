@@ -70,7 +70,7 @@ Detect the mouse
 ----------------
 
 Pressing the mouse buttons produces MOUSEBUTTONDOWN and MOUSEBUTTONUP events.
-The flollowing code in the event loop detects them and writes the event to the console::
+The following code in the event loop detects them and writes the event to the console::
 
     for event in pygame.event.get():
         if event.type == QUIT:
