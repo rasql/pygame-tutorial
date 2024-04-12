@@ -158,7 +158,7 @@ At this point nothing will be displayed. In order to show anything, the function
 Switch the background color
 ---------------------------
 
-At the beginning of the program we add a new veriable ``background``
+At the beginning of the program we add a new variable ``background``
 and initialize it to gray::
 
     background = GRAY
