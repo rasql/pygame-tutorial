@@ -256,7 +256,7 @@ Try to press the 8 specified keys to change the background color.
 Change the window caption
 -------------------------
 
-The fonction ``pygame.display.set_caption(title)`` allows to change the caption (title) 
+The function ``pygame.display.set_caption(title)`` allows to change the caption (title) 
 of the application window. We can add this to the event loop::
 
     if event.key in key_dict:
