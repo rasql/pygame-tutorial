@@ -48,7 +48,7 @@ Further we have to define the main event loop::
                     App.running = False
         pygame.quit()
 
-At the end of the module we run a demo, if the programm is run directly and not 
+At the end of the module we run a demo, if the program is run directly and not 
 imported as a module::
 
     if __name__ == '__main__':
@@ -116,7 +116,7 @@ intercept the S key and print a message::
         if event.key == K_s:
             print('Key press S')
 
-If the application has many shortcuts, the keys alone may not be enoufht and modifier keys (cmd, ctrl, alt, shift) can be used
+If the application has many shortcuts, the keys alone may not be enough and modifier keys (cmd, ctrl, alt, shift) can be used
 to increase the number of combinations.
 The easiest way to represent these shortcuts is under the form of a dictionary,
 where the key/mod tuples are associated with a command strings. 
